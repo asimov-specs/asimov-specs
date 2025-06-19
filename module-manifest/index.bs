@@ -1,0 +1,26 @@
+<pre class=metadata>
+Title: ASIMOV Module Manifest Specification (MMS)
+Shortname: module-manifest
+Level: none
+Status: LS
+URL: https://asimov-specs.github.io/module-manifest/
+Editor: Arto Bendiken, ASIMOV Systems https://asimov.systems, arto@asimov.systems
+Repository: asimov-specs/module-manifest
+Abstract: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris porttitor erat lorem. Donec eget suscipit augue, nec ultrices quam. Phasellus rutrum lectus eu augue tempor, quis lacinia arcu sodales. Suspendisse tempor eu felis in venenatis. Sed pellentesque dolor et felis placerat, quis dictum dolor vestibulum.
+Markup Shorthands: css no, markdown yes
+Ignored Terms: h1, h2, h3, h4, h5, h6, xmp
+Default Highlight: html
+</pre>
+
+<pre class=link-defaults>
+spec:html; type:element;
+	text:a
+	text:script
+	text:style
+	text:title
+	text:link
+spec:bikeshed-1; type:dfn; for:railroad; text:optional
+</pre>
+
+Introduction {#introduction}
+============================
