@@ -1,26 +1,631 @@
 <pre class=metadata>
 Title: ASIMOV Module Manifest Specification (MMS)
 Shortname: module-manifest
-Level: none
+Level: 1
 Status: LS
 URL: https://asimov-specs.github.io/module-manifest/
 Editor: Arto Bendiken, ASIMOV Systems https://asimov.systems, arto@asimov.systems
 Repository: asimov-specs/asimov-specs
-Abstract: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris porttitor erat lorem. Donec eget suscipit augue, nec ultrices quam. Phasellus rutrum lectus eu augue tempor, quis lacinia arcu sodales. Suspendisse tempor eu felis in venenatis. Sed pellentesque dolor et felis placerat, quis dictum dolor vestibulum.
+Abstract: This specification defines the ASIMOV Module Manifest format, a YAML-based declarative format for describing ASIMOV Platform modules. Module manifests provide metadata about modules including their capabilities, dependencies, and the resources they handle. This enables the ASIMOV Platform to automatically discover, configure, and orchestrate modules based on their declared capabilities.
 Markup Shorthands: css no, markdown yes
 Ignored Terms: h1, h2, h3, h4, h5, h6, xmp
-Default Highlight: html
+Default Highlight: yaml
 </pre>
 
 <pre class=link-defaults>
 spec:html; type:element;
-	text:a
-	text:script
-	text:style
-	text:title
-	text:link
+    text:a
+    text:script
+    text:style
+    text:title
+    text:link
 spec:bikeshed-1; type:dfn; for:railroad; text:optional
 </pre>
 
 Introduction {#introduction}
 ============================
+
+## Overview ## {#overview}
+
+The ASIMOV Module Manifest Specification defines a standardized format for declaring module metadata, capabilities, and requirements within the ASIMOV Platform ecosystem. Module manifests enable:
+
+- **Automatic Discovery**: Modules can be automatically discovered and registered based on their manifest declarations
+- **Capability Advertisement**: Modules declare what programs they provide and what resources they can handle
+- **Dependency Resolution**: The platform can resolve module dependencies and ensure required capabilities are available
+- **Configuration Management**: Manifests provide a single source of truth for module configuration
+
+## Scope ## {#scope}
+
+This specification covers:
+
+- The syntax and structure of module manifest files
+- Required and optional manifest fields
+- Validation rules and constraints
+- Processing model for manifest interpretation
+
+This specification does not cover:
+
+- The runtime behavior of modules
+- Inter-module communication protocols
+- Platform-specific implementation details
+
+## Conformance ## {#spec-conformance}
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [[RFC2119]].
+
+A conforming module manifest is one that satisfies all the requirements defined in this specification.
+
+A conforming manifest processor is one that correctly interprets module manifests according to the processing model defined in this specification.
+
+Manifest Structure {#structure}
+===============================
+
+## File Format ## {#file-format}
+
+Module manifests MUST be written in YAML 1.2 format [[YAML]]. The manifest file MUST be named `module.yaml` and placed in the `.asimov` directory in the root of the module repository (i.e., `.asimov/module.yaml`).
+
+The manifest MUST begin with a YAML document separator (`---`) and MAY include the following comment referencing this specification:
+
+```yaml
+# See: https://asimov-specs.github.io/module-manifest/
+---
+```
+
+## Top-Level Fields ## {#top-level-fields}
+
+A module manifest consists of the following top-level fields:
+
+<table class="data">
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Type</th>
+      <th>Required</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><dfn>name</dfn></td>
+      <td>string</td>
+      <td>REQUIRED</td>
+      <td>The unique identifier for the module</td>
+    </tr>
+    <tr>
+      <td><dfn>label</dfn></td>
+      <td>string</td>
+      <td>OPTIONAL</td>
+      <td>A human-readable display name for the module</td>
+    </tr>
+    <tr>
+      <td><dfn>summary</dfn></td>
+      <td>string</td>
+      <td>OPTIONAL</td>
+      <td>A brief description of the module's purpose</td>
+    </tr>
+    <tr>
+      <td><dfn>links</dfn></td>
+      <td>array&lt;string&gt;</td>
+      <td>OPTIONAL</td>
+      <td>URLs to related resources (homepage, repository, documentation)</td>
+    </tr>
+    <tr>
+      <td><dfn>provides</dfn></td>
+      <td>object</td>
+      <td>OPTIONAL</td>
+      <td>Capabilities provided by the module</td>
+    </tr>
+    <tr>
+      <td><dfn>handles</dfn></td>
+      <td>object</td>
+      <td>OPTIONAL</td>
+      <td>Resource types handled by the module</td>
+    </tr>
+  </tbody>
+</table>
+
+## The name Field ## {#name-field}
+
+The <a>name</a> field MUST contain a string that uniquely identifies the module within the ASIMOV Platform. The name:
+
+- MUST consist only of lowercase letters, digits, and hyphens
+- MUST start with a letter
+- MUST NOT exceed 64 characters in length
+- SHOULD be descriptive and follow the pattern `category-provider-type` (e.g., `search-google-fetcher`)
+
+## The label Field ## {#label-field}
+
+The <a>label</a> field contains an optional human-readable display name for the module. If provided, it SHOULD be concise and suitable for display in user interfaces.
+
+## The summary Field ## {#summary-field}
+
+The <a>summary</a> field contains an optional brief description of the module's purpose and functionality. This SHOULD be a single sentence that clearly explains what the module does.
+
+## The links Field ## {#links-field}
+
+The <a>links</a> field contains an optional array of URLs pointing to resources related to the module, such as:
+
+- The module's homepage
+- Source code repository
+- Documentation
+- Package registry entries
+
+All URLs in this array MUST be well-formed and use HTTPS where applicable.
+
+## The provides Section ## {#provides-section}
+
+The <a>provides</a> section declares the capabilities that a module makes available to the platform. Currently, the following capability types are defined:
+
+### programs ### {#programs}
+
+The `programs` field contains an array of executable program names that the module provides. These programs:
+
+- MUST follow the naming convention `asimov-{module}-{function}`
+- MUST be executable files or scripts included with the module
+- SHOULD implement well-defined interfaces for their function type as specified in [[ASIMOV-PPS]]
+
+The function types (e.g., fetcher, importer, emitter, processor) are defined in the ASIMOV Program Patterns Specification.
+
+Example:
+```yaml
+provides:
+  programs:
+    - asimov-serpapi-fetcher
+    - asimov-serpapi-importer
+```
+
+## The handles Section ## {#handles-section}
+
+The <a>handles</a> section declares what types of resources or inputs the module can process. Multiple handler types can be specified:
+
+### url_protocols ### {#url-protocols}
+
+An array of URL protocol schemes (without the trailing colon) that the module can handle.
+
+Example:
+```yaml
+handles:
+  url_protocols:
+    - near
+    - ipfs
+```
+
+### url_prefixes ### {#url-prefixes}
+
+An array of URL prefixes that the module can handle. These MUST be complete URLs including the protocol scheme.
+
+Example:
+```yaml
+handles:
+  url_prefixes:
+    - https://amazon.com/
+    - https://ebay.com/itm/
+```
+
+### url_patterns ### {#url-patterns}
+
+An array of URL patterns with parameter placeholders that the module can handle. Patterns MUST conform to the syntax defined in [[URLPATTERN]].
+
+Example:
+```yaml
+handles:
+  url_patterns:
+    - https://google.com/search?q=:query
+    - https://x.com/:account/followers
+```
+
+### file_extensions ### {#file-extensions}
+
+An array of file extensions (including the leading dot) that the module can process. File extensions SHOULD be registered with IANA as specified in [[RFC6838]] or be well-established conventional extensions.
+
+Example:
+```yaml
+handles:
+  file_extensions:
+    - .csv
+    - .xlsx
+```
+
+### content_types ### {#content-types}
+
+An array of MIME content types that the module can process. Content types MUST be formatted according to [[RFC2046]] and SHOULD be registered in the IANA Media Types registry [[IANA-MEDIA-TYPES]].
+
+Example:
+```yaml
+handles:
+  content_types:
+    - application/json
+    - text/csv
+```
+
+Examples {#examples}
+====================
+
+## Basic Module Manifest ## {#basic-example}
+
+A minimal module manifest for a template module:
+
+```yaml
+# See: https://asimov-specs.github.io/module-manifest/
+---
+name: template
+label: Template
+summary: Fork this to create your own module!
+links:
+  - https://github.com/asimov-modules/asimov-template-module
+  - https://crates.io/crates/asimov-template-module
+
+provides:
+  programs:
+    - asimov-template-emitter
+
+handles:
+  url_protocols:
+  url_prefixes:
+  url_patterns:
+  file_extensions:
+  content_types:
+```
+
+## Search API Module ## {#search-api-example}
+
+A module that provides search capabilities through multiple search engines:
+
+```yaml
+---
+name: serpapi
+label: SerpAPI Search
+summary: Provides search results from multiple search engines via SerpAPI
+links:
+  - https://serpapi.com
+  - https://github.com/asimov-modules/asimov-serpapi-module
+
+provides:
+  programs:
+    - asimov-serpapi-fetcher
+    - asimov-serpapi-importer
+
+handles:
+  url_patterns:
+    - https://bing.com/search?q=:query
+    - https://duckduckgo.com/?q=:query
+    - https://google.com/search?q=:query
+    - https://baidu.com/s?wd=:query
+```
+
+## Social Media Scraper Module ## {#social-media-example}
+
+A module that handles various social media platforms:
+
+```yaml
+---
+name: brightdata
+label: Bright Data Scraper
+summary: Web scraping for e-commerce and social media platforms
+links:
+  - https://brightdata.com
+  - https://github.com/asimov-modules/asimov-brightdata-module
+
+provides:
+  programs:
+    - asimov-brightdata-fetcher
+    - asimov-brightdata-importer
+    - asimov-brightdata-analyzer
+
+handles:
+  url_prefixes:
+    - https://facebook.com/events/
+    - https://facebook.com/groups/
+    - https://facebook.com/marketplace/item/
+    - https://instagram.com/
+    - https://instagram.com/p/
+    - https://instagram.com/reel/
+    - https://linkedin.com/company/
+    - https://linkedin.com/in/
+    - https://x.com/
+    - https://youtube.com/@
+    - https://youtube.com/watch?v=
+```
+
+## Blockchain Module ## {#blockchain-example}
+
+A module that handles blockchain protocols:
+
+```yaml
+---
+name: near
+label: NEAR Protocol
+summary: Integration with the NEAR blockchain ecosystem
+links:
+  - https://near.org
+  - https://github.com/asimov-modules/asimov-near-module
+
+provides:
+  programs:
+    - asimov-near-fetcher
+    - asimov-near-validator
+    - asimov-near-signer
+
+handles:
+  url_protocols:
+    - near
+  url_patterns:
+    - https://explorer.near.org/accounts/:account
+    - https://explorer.near.org/transactions/:txhash
+```
+
+Processing Model {#processing}
+==============================
+
+## Discovery ## {#discovery}
+
+The ASIMOV Platform discovers modules by:
+
+1. Scanning designated module directories for `.asimov/module.yaml` files
+2. Validating each manifest according to this specification
+3. Registering valid modules in the platform's module registry
+
+## Validation ## {#validation}
+
+A manifest processor MUST validate that:
+
+1. The manifest is valid YAML 1.2
+2. All required fields are present
+3. Field values conform to their specified types
+4. The `name` field meets the naming requirements
+5. All URLs in the `links` field are well-formed
+6. Program names in `provides.programs` follow the naming convention
+7. URL prefixes and patterns in the `handles` section are well-formed
+
+## Conflict Resolution ## {#conflicts}
+
+When multiple modules declare handlers for overlapping resources:
+
+1. More specific handlers take precedence over less specific ones
+2. `url_patterns` take precedence over `url_prefixes`
+3. `url_prefixes` take precedence over `url_protocols`
+4. For equal specificity, the platform MAY use additional criteria (e.g., module priority, user preference)
+
+## Runtime Behavior ## {#runtime}
+
+When the platform needs to handle a resource:
+
+1. It queries the module registry for modules that handle the resource type
+2. It selects the most appropriate module based on the conflict resolution rules
+3. It invokes the appropriate program from the module's `provides.programs` list
+4. The program processes the resource and returns results in the expected format
+
+RDF Mapping {#rdf-mapping}
+==========================
+
+Module manifests can be mapped to RDF using YAML-LD [[YAML-LD]] or JSON-LD [[JSON-LD]]. This enables integration with linked data systems and semantic web technologies.
+
+## Vocabulary ## {#rdf-vocabulary}
+
+This specification defines the following RDF vocabulary with the base IRI `https://asimov-specs.github.io/module-manifest/`:
+
+| Prefix | Namespace IRI |
+|--------|--------------|
+| `mms:` | `https://asimov-specs.github.io/module-manifest/` |
+| `rdf:` | `http://www.w3.org/1999/02/22-rdf-syntax-ns#` |
+| `rdfs:` | `http://www.w3.org/2000/01/rdf-schema#` |
+| `xsd:` | `http://www.w3.org/2001/XMLSchema#` |
+
+## Type Mappings ## {#rdf-types}
+
+The following RDF types are defined:
+
+- `mms:Module` - The class of ASIMOV modules
+- `mms:Program` - The class of executable programs
+- `mms:Handler` - The class of resource handlers
+
+## Property Mappings ## {#rdf-properties}
+
+Module manifest fields map to RDF properties as follows:
+
+| YAML Field | RDF Property | Range |
+|------------|--------------|--------|
+| `name` | `mms:name` | `xsd:string` |
+| `label` | `rdfs:label` | `xsd:string` |
+| `summary` | `rdfs:comment` | `xsd:string` |
+| `links` | `rdfs:seeAlso` | `xsd:anyURI` |
+| `provides.programs` | `mms:providesProgram` | `mms:Program` |
+| `handles.url_protocols` | `mms:handlesProtocol` | `xsd:string` |
+| `handles.url_prefixes` | `mms:handlesPrefix` | `xsd:anyURI` |
+| `handles.url_patterns` | `mms:handlesPattern` | `xsd:string` |
+| `handles.file_extensions` | `mms:handlesExtension` | `xsd:string` |
+| `handles.content_types` | `mms:handlesContentType` | `xsd:string` |
+
+## JSON-LD Context ## {#jsonld-context}
+
+The following JSON-LD context SHOULD be used when converting module manifests to JSON-LD:
+
+```json
+{
+  "@context": {
+    "@vocab": "https://asimov-specs.github.io/module-manifest/",
+    "mms": "https://asimov-specs.github.io/module-manifest/",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+
+    "name": "mms:name",
+    "label": "rdfs:label",
+    "summary": "rdfs:comment",
+    "links": {
+      "@id": "rdfs:seeAlso",
+      "@type": "@id"
+    },
+    "provides": "mms:provides",
+    "programs": {
+      "@id": "mms:providesProgram",
+      "@container": "@set"
+    },
+    "handles": "mms:handles",
+    "url_protocols": {
+      "@id": "mms:handlesProtocol",
+      "@container": "@set"
+    },
+    "url_prefixes": {
+      "@id": "mms:handlesPrefix",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "url_patterns": {
+      "@id": "mms:handlesPattern",
+      "@container": "@set"
+    },
+    "file_extensions": {
+      "@id": "mms:handlesExtension",
+      "@container": "@set"
+    },
+    "content_types": {
+      "@id": "mms:handlesContentType",
+      "@container": "@set"
+    }
+  }
+}
+```
+
+## Example RDF Mapping ## {#rdf-example}
+
+Given the following module manifest:
+
+```yaml
+---
+name: serpapi
+label: SerpAPI Search
+summary: Provides search results via SerpAPI
+links:
+  - https://serpapi.com
+
+provides:
+  programs:
+    - asimov-serpapi-fetcher
+
+handles:
+  url_patterns:
+    - https://google.com/search?q=:query
+```
+
+The equivalent RDF representation in Turtle would be:
+
+```turtle
+@prefix mms: <https://asimov-specs.github.io/module-manifest/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] a mms:Module ;
+   mms:name "serpapi" ;
+   rdfs:label "SerpAPI Search" ;
+   rdfs:comment "Provides search results via SerpAPI" ;
+   rdfs:seeAlso <https://serpapi.com> ;
+   mms:providesProgram "asimov-serpapi-fetcher" ;
+   mms:handlesPattern "https://google.com/search?q=:query" .
+```
+
+Security Considerations {#security}
+===================================
+
+## Manifest Validation ## {#manifest-validation}
+
+Implementations MUST:
+
+- Validate all manifest fields before processing
+- Reject manifests with malformed data
+- Sanitize all string values to prevent injection attacks
+- Verify that declared programs actually exist before registration
+
+## Program Execution ## {#program-execution}
+
+When executing programs declared in manifests:
+
+- Programs SHOULD run with minimal required privileges
+- The platform SHOULD implement sandboxing or containerization
+- Resource limits SHOULD be enforced
+- Network access SHOULD be restricted to declared URL patterns
+
+## URL Pattern Matching ## {#url-pattern-matching}
+
+URL pattern matching MUST be implemented carefully to avoid:
+
+- Regular expression denial of service (ReDoS) attacks
+- Unbounded memory consumption
+- Pattern injection vulnerabilities
+
+IANA Considerations {#iana}
+===========================
+
+This specification does not require any IANA registrations.
+
+References {#spec-references}
+========================
+
+## Normative References ## {#spec-normative}
+
+<dl>
+  <dt id="RFC2119">[[RFC2119]]
+  <dd>S. Bradner. <a href="https://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>. March 1997. Best Current Practice. URL: <a href="https://tools.ietf.org/html/rfc2119">https://tools.ietf.org/html/rfc2119</a>
+
+  <dt id="RFC2046">[[RFC2046]]
+  <dd>N. Freed; N. Borenstein. <a href="https://tools.ietf.org/html/rfc2046">Multipurpose Internet Mail Extensions (MIME) Part Two: Media Types</a>. November 1996. Draft Standard. URL: <a href="https://tools.ietf.org/html/rfc2046">https://tools.ietf.org/html/rfc2046</a>
+
+  <dt id="RFC6838">[[RFC6838]]
+  <dd>N. Freed; J. Klensin; T. Hansen. <a href="https://tools.ietf.org/html/rfc6838">Media Type Specifications and Registration Procedures</a>. January 2013. Best Current Practice. URL: <a href="https://tools.ietf.org/html/rfc6838">https://tools.ietf.org/html/rfc6838</a>
+
+  <dt id="YAML">[[YAML]]
+  <dd>Oren Ben-Kiki; Clark Evans; Ingy döt Net. <a href="https://yaml.org/spec/1.2/spec.html">YAML Ain't Markup Language (YAML™) Version 1.2</a>. 1 October 2009. URL: <a href="https://yaml.org/spec/1.2/spec.html">https://yaml.org/spec/1.2/spec.html</a>
+
+  <dt id="URLPATTERN">[[URLPATTERN]]
+  <dd>WHATWG. <a href="https://urlpattern.spec.whatwg.org/">URL Pattern Standard</a>. Living Standard. URL: <a href="https://urlpattern.spec.whatwg.org/">https://urlpattern.spec.whatwg.org/</a>
+
+  <dt id="JSON-LD">[[JSON-LD]]
+  <dd>Gregg Kellogg; Pierre-Antoine Champin; Dave Longley. <a href="https://www.w3.org/TR/json-ld11/">JSON-LD 1.1</a>. 16 July 2020. W3C Recommendation. URL: <a href="https://www.w3.org/TR/json-ld11/">https://www.w3.org/TR/json-ld11/</a>
+
+  <dt id="YAML-LD">[[YAML-LD]]
+  <dd>Gregg Kellogg. <a href="https://json-ld.github.io/yaml-ld/spec/">YAML-LD</a>. Draft Community Group Report. URL: <a href="https://json-ld.github.io/yaml-ld/spec/">https://json-ld.github.io/yaml-ld/spec/</a>
+
+  <dt id="IANA-MEDIA-TYPES">[[IANA-MEDIA-TYPES]]
+  <dd>IANA. <a href="https://www.iana.org/assignments/media-types/">Media Types</a>. URL: <a href="https://www.iana.org/assignments/media-types/">https://www.iana.org/assignments/media-types/</a>
+
+  <dt id="ASIMOV-PPS">[[ASIMOV-PPS]]
+  <dd>ASIMOV Systems. <a href="https://asimov-specs.github.io/program-patterns/">ASIMOV Program Patterns Specification</a>. URL: <a href="https://asimov-specs.github.io/program-patterns/">https://asimov-specs.github.io/program-patterns/</a>
+</dl>
+
+## Informative References ## {#spec-informative}
+
+<dl>
+  <dt id="ASIMOV">ASIMOV
+  <dd>ASIMOV Systems. <a href="https://asimov.systems">ASIMOV Platform Documentation</a>. URL: <a href="https://asimov.systems">https://asimov.systems</a>
+</dl>
+
+Acknowledgments {#acknowledgments}
+==================================
+
+The editors would like to thank the ASIMOV Platform community for their contributions and feedback during the development of this specification.
+
+<pre class="biblio">
+{
+  "ASIMOV-PPS": {
+    "authors": ["ASIMOV Systems"],
+    "href": "https://asimov-specs.github.io/program-patterns/",
+    "title": "ASIMOV Program Patterns Specification",
+    "publisher": "ASIMOV Systems"
+  },
+  "YAML-LD": {
+    "authors": ["Gregg Kellogg"],
+    "href": "https://json-ld.github.io/yaml-ld/spec/",
+    "title": "YAML-LD",
+    "status": "Draft Community Group Report"
+  }
+}
+</pre>
+
+Changes {#changes}
+==================
+
+This section will document changes between versions of this specification.
+
+## Version 1.0 ## {#v1}
+
+Initial version of the ASIMOV Module Manifest Specification.
