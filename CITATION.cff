@@ -1,0 +1,23 @@
+# See: https://github.com/citation-file-format/citation-file-format/blob/1.2.0/schema-guide.md
+---
+cff-version: 1.2.0
+title: ASIMOV Specifications
+message: >-
+  If you use these specifications, please cite them using the metadata from this file.
+type: dataset
+authors:
+  - given-names: Arto
+    family-names: Bendiken
+    affiliation: ASIMOV Systems
+    alias: artob
+    website: https://github.com/artob
+    orcid: https://orcid.org/0009-0002-0725-4874
+repository-code: https://github.com/asimov-specs/asimov-specs
+url: https://asimov-specs.github.io
+abstract: >-
+  Comprehensive technical specifications for the ASIMOV Platform.
+keywords:
+  - asimov
+  - specifications
+license: Unlicense
+date-released: 2025-06-20
