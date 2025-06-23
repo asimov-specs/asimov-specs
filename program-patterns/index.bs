@@ -24,3 +24,30 @@ spec:bikeshed-1; type:dfn; for:railroad; text:optional
 
 Introduction {#introduction}
 ============================
+
+Examples {#examples}
+====================
+
+RDF Mapping {#rdf-mapping}
+==========================
+
+Security Considerations {#security}
+===================================
+
+IANA Considerations {#iana}
+===========================
+
+This specification does not require any IANA registrations.
+
+Acknowledgments {#acknowledgments}
+==================================
+
+The editors would like to thank the ASIMOV Platform community for their contributions and feedback during the development of this specification.
+
+<pre class="biblio">
+</pre>
+
+Changes {#changes}
+==================
+
+This section will document changes between versions of this specification.
