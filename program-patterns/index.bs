@@ -6,7 +6,7 @@ Status: LS
 URL: https://asimov-specs.github.io/program-patterns/
 Editor: Arto Bendiken, ASIMOV Systems https://asimov.systems, arto@asimov.systems
 Repository: asimov-specs/asimov-specs
-Abstract: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris porttitor erat lorem. Donec eget suscipit augue, nec ultrices quam. Phasellus rutrum lectus eu augue tempor, quis lacinia arcu sodales. Suspendisse tempor eu felis in venenatis. Sed pellentesque dolor et felis placerat, quis dictum dolor vestibulum.
+Abstract: Establishes standardized programming patterns and best practices for developing robust and maintainable ASIMOV software components.
 Markup Shorthands: css no, markdown yes
 Ignored Terms: h1, h2, h3, h4, h5, h6, xmp
 Default Highlight: yaml
