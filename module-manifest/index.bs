@@ -604,18 +604,84 @@ Acknowledgments {#acknowledgments}
 
 The editors would like to thank the ASIMOV Platform community for their contributions and feedback during the development of this specification.
 
-<pre class="biblio">
+<pre class=biblio>
 {
+  "ASIMOV": {
+    "title": "ASIMOV Platform Documentation",
+    "publisher": "ASIMOV Systems",
+    "authors": [
+      "Arto Bendiken"
+    ],
+    "etAl": true,
+    "href": "https://asimov.sh",
+    "deliveredBy": [
+      "https://github.com/asimov-platform"
+    ]
+  },
+  "ASIMOV-MCS": {
+    "title": "ASIMOV Module Concepts Specification",
+    "publisher": "ASIMOV Systems",
+    "authors": [
+      "Arto Bendiken"
+    ],
+    "etAl": true,
+    "href": "https://asimov-specs.github.io/module-concepts/",
+    "deliveredBy": [
+      "https://github.com/asimov-specs"
+    ]
+  },
+  "ASIMOV-MMS": {
+    "title": "ASIMOV Module Manifest Specification",
+    "publisher": "ASIMOV Systems",
+    "authors": [
+      "Arto Bendiken"
+    ],
+    "etAl": true,
+    "href": "https://asimov-specs.github.io/module-manifest/",
+    "deliveredBy": [
+      "https://github.com/asimov-specs"
+    ]
+  },
+  "ASIMOV-MPS": {
+    "title": "ASIMOV Module Packaging Specification",
+    "publisher": "ASIMOV Systems",
+    "authors": [
+      "Arto Bendiken"
+    ],
+    "etAl": true,
+    "href": "https://asimov-specs.github.io/module-packaging/",
+    "deliveredBy": [
+      "https://github.com/asimov-specs"
+    ]
+  },
   "ASIMOV-PPS": {
-    "authors": ["ASIMOV Systems"],
-    "href": "https://asimov-specs.github.io/program-patterns/",
     "title": "ASIMOV Program Patterns Specification",
-    "publisher": "ASIMOV Systems"
+    "publisher": "ASIMOV Systems",
+    "authors": [
+      "Arto Bendiken"
+    ],
+    "etAl": true,
+    "href": "https://asimov-specs.github.io/program-patterns/",
+    "deliveredBy": [
+      "https://github.com/asimov-specs"
+    ]
+  },
+  "ASIMOV-SDS": {
+    "title": "ASIMOV State Directory Specification",
+    "publisher": "ASIMOV Systems",
+    "authors": [
+      "Arto Bendiken"
+    ],
+    "etAl": true,
+    "href": "https://asimov-specs.github.io/state-directory/",
+    "deliveredBy": [
+      "https://github.com/asimov-specs"
+    ]
   },
   "YAML-LD": {
+    "title": "YAML-LD",
     "authors": ["Gregg Kellogg"],
     "href": "https://json-ld.github.io/yaml-ld/spec/",
-    "title": "YAML-LD",
     "status": "Draft Community Group Report"
   }
 }
