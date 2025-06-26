@@ -7,7 +7,7 @@ URL: https://asimov-specs.github.io/module-resolution/
 Editor: Arto Bendiken, ASIMOV Systems https://asimov.systems, arto@asimov.systems
 Editor: Samuel Sarle, ASIMOV Systems https://asimov.systems, samuel@asimov.systems
 Repository: asimov-specs/asimov-specs
-Abstract: Defines how data source URIs are resolved using pattern matching to locate ASIMOV modules that are able to extract and transform those data into a knowledge graph dataset.
+Abstract: Defines the algorithm for resolving data source URIs to ASIMOV modules using pattern matching, enabling automatic discovery and selection of modules capable of processing specific resource types.
 Markup Shorthands: css no, markdown yes
 Ignored Terms: h1, h2, h3, h4, h5, h6, xmp
 Default Highlight: yaml
@@ -29,18 +29,472 @@ Introduction {#introduction}
 The [[ASIMOV]] Platform is a polyglot development platform for trustworthy,
 neurosymbolic AI.
 
-This specification defines how data source URIs are resolved using pattern
-matching to locate ASIMOV modules that are able to extract and transform
-those data into a knowledge graph dataset.
+This specification defines the algorithm for resolving data source URIs to ASIMOV modules using pattern matching. The resolution process enables the platform to automatically discover and select modules that are capable of extracting and transforming specific data sources into knowledge graph datasets.
+
+## Overview ## {#overview}
+
+The ASIMOV Module Resolution Specification defines a standardized algorithm for matching URIs against module capability declarations to determine which modules can handle specific resources. The resolution process enables:
+
+- **Automatic Module Selection**: Given a URI, the platform can automatically select appropriate modules for processing
+- **Pattern-Based Matching**: Supports exact matches, prefixes, and parameterized patterns for flexible resource handling
+- **Conflict Resolution**: Provides deterministic rules for selecting modules when multiple candidates are available
+- **Extensible Architecture**: Allows modules to declare new resource types and patterns
+
+## Scope ## {#scope}
+
+This specification covers:
+
+- The URI tokenization and normalization process
+- Pattern matching algorithms for different handler types
+- Module selection and conflict resolution rules
+- The data structures and state machines used in resolution
+
+This specification does not cover:
+
+- The format of module manifests (see [[ASIMOV-MMS]])
+- Runtime execution of selected modules
+- Inter-module communication protocols
+
+## Conformance ## {#spec-conformance}
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [[RFC2119]].
+
+A conforming resolver is one that implements the resolution algorithm defined in this specification and produces correct results for all valid inputs.
+
+Resolution Algorithm {#algorithm}
+=================================
+
+## URI Tokenization ## {#tokenization}
+
+The resolution process begins with tokenizing the input URI into a sequence of sections that can be matched against module patterns.
+
+### Tokenization Process ### {#tokenization-process}
+
+Given a URI, the tokenizer MUST:
+
+1. **Extract the scheme**: The protocol portion before the first colon (e.g., `https`, `file`, `near`)
+2. **Parse the authority**: For hierarchical URIs, extract and reverse the domain components
+3. **Extract path segments**: Split the path on forward slashes, ignoring empty segments
+4. **Extract query parameters**: Parse query string into name-value pairs
+
+### Section Types ### {#section-types}
+
+The tokenizer produces the following section types:
+
+<dfn>Protocol</dfn>
+: The URI scheme (e.g., `https`, `file`, `near`)
+
+<dfn>Domain</dfn>
+: A single domain component in reverse order (e.g., `com`, `example` from `example.com`)
+
+<dfn>Path</dfn>
+: A single path segment (e.g., `search`, `users` from `/search/users`)
+
+<dfn>QueryParamName</dfn>
+: The name of a query parameter (e.g., `q` from `?q=value`)
+
+<dfn>QueryParamValue</dfn>
+: The value of a query parameter (e.g., `value` from `?q=value`)
+
+### Normalization Rules ### {#normalization-rules}
+
+During tokenization, the following normalization rules MUST be applied:
+
+1. **www Removal**: For HTTP/HTTPS URIs, remove leading `www.` from the domain
+2. **Domain Reversal**: Domain components are stored in reverse order (TLD first)
+3. **Empty Segment Filtering**: Empty path segments are ignored
+4. **Query Parameter Ordering**: Query parameters are processed in the order they appear
+
+### Tokenization Examples ### {#tokenization-examples}
+
+```yaml
+# Input: https://example.com/search?q=test
+# Output: [Protocol("https"), Domain("com"), Domain("example"),
+#          Path("search"), QueryParamName("q"), QueryParamValue("test")]
+
+# Input: near://account/alice.near
+# Output: [Protocol("near"), Path("account"), Path("alice.near")]
+
+# Input: file:///path/to/file.txt
+# Output: [Protocol("file"), Path("path"), Path("to"), Path("file.txt")]
+```
+
+## Pattern Types ## {#pattern-types}
+
+Modules can declare different types of patterns for matching URIs:
+
+### Protocol Patterns ### {#protocol-patterns}
+
+<dfn>Protocol patterns</dfn> match URIs based on their scheme. A protocol pattern matches any URI that begins with the specified protocol, effectively acting as a prefix match.
+
+Example:
+```yaml
+handles:
+  url_protocols:
+    - near
+    - ipfs
+```
+
+### Prefix Patterns ### {#prefix-patterns}
+
+<dfn>Prefix patterns</dfn> match URIs that begin with a specific prefix. The matching is exact up to the end of the declared prefix, and any additional path segments or query parameters are ignored.
+
+Example:
+```yaml
+handles:
+  url_prefixes:
+    - https://api.github.com/
+    - https://example.com/api/v1/
+```
+
+### Parameterized Patterns ### {#parameterized-patterns}
+
+<dfn>Parameterized patterns</dfn> match URIs with variable components, allowing extraction of parameters from the URI structure.
+
+#### Pattern Syntax #### {#pattern-syntax}
+
+Parameterized patterns use the following syntax:
+
+- `*` in domain position: Matches zero or more subdomains
+- `:name` in path position: Matches any single path segment
+- `:name` in query value position: Matches any query parameter value
+
+Example:
+```yaml
+handles:
+  url_patterns:
+    - https://*.example.com/users/:id
+    - https://search.example.com/?q=:query
+```
+
+#### Wildcard Matching #### {#wildcard-matching}
+
+<dfn>Wildcard domain patterns</dfn> (`*`) match zero or more subdomain components. This enables matching of URIs with varying numbers of subdomains.
+
+<dfn>Wildcard path patterns</dfn> (`:name`) match exactly one path segment with any value.
+
+<dfn>Wildcard query patterns</dfn> (`:name`) match any value for a specific query parameter name.
+
+### File Extension Patterns ### {#file-extension-patterns}
+
+<dfn>File extension patterns</dfn> match URIs with `file://` scheme based on the file extension. The extension is extracted from the last path segment.
+
+Example:
+```yaml
+handles:
+  file_extensions:
+    - csv
+    - json
+    - tar.gz
+```
+
+## Resolution State Machine ## {#state-machine}
+
+The resolution algorithm uses a finite state machine to track possible matches as it processes the tokenized URI.
+
+### State Representation ### {#state-representation}
+
+Each state in the resolution process is represented by a <dfn>node</dfn> that contains:
+
+- **Transitions**: A mapping from section types to destination nodes
+- **Modules**: A set of modules that can handle URIs reaching this state
+- **Free Moves**: Special transitions that match any input without consuming it
+
+### State Transitions ### {#state-transitions}
+
+The state machine processes input sections sequentially, following these rules:
+
+1. **Start with root states**: Initialize with all root nodes whose patterns match the first input section
+2. **Process remaining input**: For each subsequent input section, find all reachable states
+3. **Follow free moves**: After each transition, follow any available free move transitions
+4. **Collect results**: Gather all modules from states reached after processing all input
+
+### Free Move Semantics ### {#free-move-semantics}
+
+<dfn>Free moves</dfn> are special transitions that enable:
+
+- **Prefix matching**: Allowing additional path segments beyond the declared prefix
+- **Protocol matching**: Treating protocols as prefixes that match any URI with that scheme
+- **Wildcard domain repetition**: Enabling `*` patterns to match multiple subdomain levels
+
+## Resolution Process ## {#resolution-process}
+
+### Input Processing ### {#input-processing}
+
+The resolution process follows these steps:
+
+1. **Tokenize URI**: Convert the input URI into a sequence of sections
+2. **Handle file extensions**: For `file://` URIs, check file extension patterns first
+3. **Initialize state set**: Find all root states that match the first input section
+4. **Process input sequence**: For each remaining input section, advance the state machine
+5. **Collect results**: Gather all modules from final states
+
+### Matching Rules ### {#matching-rules}
+
+Section matching follows these precedence rules:
+
+1. **Exact matches**: Literal sections match exactly
+2. **Wildcard matches**: Wildcard sections match corresponding input types
+3. **Free moves**: Always match without consuming input
+
+The matching function for sections is defined as:
+
+```
+matches(pattern_section, input_section) :=
+  pattern_section == input_section OR
+  (pattern_section == WildcardDomain AND input_section is Domain) OR
+  (pattern_section == WildcardPath AND input_section is Path) OR
+  (pattern_section == WildcardQueryParamValue AND input_section is QueryParamValue) OR
+  pattern_section == FreeMove
+```
+
+### Conflict Resolution ### {#conflict-resolution}
+
+When multiple modules match a URI, the resolver returns all matching modules. The selection of which module to use for processing is left to higher-level platform components.
+
+However, for informational purposes, the following precedence rules are RECOMMENDED:
+
+1. **Specificity**: More specific patterns take precedence over less specific ones
+2. **Pattern type precedence**: Parameterized patterns > Prefix patterns > Protocol patterns
+3. **Path length**: Longer paths take precedence over shorter ones
 
 Examples {#examples}
 ====================
 
-RDF Mapping {#rdf-mapping}
-==========================
+## Basic Resolution Examples ## {#basic-examples}
+
+### Protocol Resolution ### {#protocol-resolution}
+
+```yaml
+# Module declares:
+handles:
+  url_protocols:
+    - near
+
+# Resolves:
+near://account/alice.near -> [near-module]
+near://tx/ABC123 -> [near-module]
+near -> [near-module]
+```
+
+### Prefix Resolution ### {#prefix-resolution}
+
+```yaml
+# Module declares:
+handles:
+  url_prefixes:
+    - https://api.github.com/
+
+# Resolves:
+https://api.github.com/ -> [github-module]
+https://api.github.com/users -> [github-module]
+https://api.github.com/repos/owner/name -> [github-module]
+```
+
+### Pattern Resolution ### {#pattern-resolution}
+
+```yaml
+# Module declares:
+handles:
+  url_patterns:
+    - https://youtube.com/watch?v=:video_id
+
+# Resolves:
+https://youtube.com/watch?v=ABC123 -> [youtube-module]
+```
+
+## Advanced Resolution Examples ## {#advanced-examples}
+
+### Wildcard Domains ### {#wildcard-domains}
+
+```yaml
+# Module declares:
+handles:
+  url_patterns:
+    - https://*.example.com/api/:endpoint
+
+# Resolves:
+https://example.com/api/users -> [api-module]
+https://api.example.com/api/users -> [api-module]
+https://v1.api.example.com/api/users -> [api-module]
+```
+
+### Multiple Handlers ### {#multiple-handlers}
+
+```yaml
+# Module A declares:
+handles:
+  url_protocols:
+    - https
+
+# Module B declares:
+handles:
+  url_prefixes:
+    - https://example.com/
+
+# Module C declares:
+handles:
+  url_patterns:
+    - https://example.com/api/:endpoint
+
+# Resolution:
+https://example.com/api/users -> [Module A, Module B, Module C]
+https://example.com/page -> [Module A, Module B]
+https://other.com/page -> [Module A]
+```
+
+### File Extensions ### {#file-extensions}
+
+```yaml
+# Module declares:
+handles:
+  file_extensions:
+    - csv
+    - tar.gz
+
+# Resolves:
+file:///path/to/data.csv -> [csv-module]
+file:///archive.tar.gz -> [csv-module]
+```
+
+## Complex Resolution Scenario ## {#complex-scenario}
+
+Consider a comprehensive example with multiple module types:
+
+```yaml
+# Search module
+name: search-aggregator
+handles:
+  url_patterns:
+    - https://google.com/search?q=:query
+    - https://bing.com/search?q=:query
+
+# Social media module
+name: social-scraper
+handles:
+  url_prefixes:
+    - https://twitter.com/
+    - https://x.com/
+  url_patterns:
+    - https://youtube.com/watch?v=:video_id
+
+# NEAR module
+name: near-integration
+handles:
+  url_protocols:
+    - near
+  url_patterns:
+    - https://explorer.near.org/accounts/:account
+
+# File processor module
+name: data-processor
+handles:
+  file_extensions:
+    - csv
+    - json
+```
+
+Resolution results:
+- `https://google.com/search?q=ASIMOV` → `[search-aggregator]`
+- `https://x.com/username` → `[social-scraper]`
+- `https://youtube.com/watch?v=ABC123` → `[social-scraper]`
+- `near://account/alice.near` → `[near-integration]`
+- `https://explorer.near.org/accounts/alice.near` → `[near-integration]`
+- `file:///data/export.csv` → `[data-processor]`
+
+Implementation Considerations {#implementation}
+==============================================
+
+## Data Structures ## {#data-structures}
+
+### Resolver State ### {#resolver-state}
+
+A conforming resolver implementation MUST maintain:
+
+- **Module registry**: A mapping from module names to module metadata
+- **File extension index**: A mapping from file extensions to lists of capable modules
+- **State machine nodes**: A collection of nodes representing the resolution state space
+- **Root node registry**: A mapping from initial sections to starting nodes
+
+### Node Structure ### {#node-structure}
+
+Each node in the state machine MUST contain:
+
+- **Transition table**: A mapping from section types to destination node identifiers
+- **Module set**: A collection of modules that can handle URIs reaching this node
+- **Free move target**: An optional reference to a node reachable via free move
+
+### Memory Management ### {#memory-management}
+
+Implementations SHOULD consider:
+
+- **Shared module references**: Avoid duplicating module metadata across nodes
+- **Compact node representation**: Use efficient data structures for transition tables
+- **Lazy evaluation**: Only compute reachable states when needed
+
+## Performance Considerations ## {#performance}
+
+### Algorithmic Complexity ### {#complexity}
+
+The resolution algorithm has the following complexity characteristics:
+
+- **Time complexity**: O(n × m) where n is the number of input sections and m is the number of active states
+- **Space complexity**: O(k) where k is the total number of registered patterns
+- **Preprocessing**: O(p) where p is the number of patterns to register
+
+### Optimization Strategies ### {#optimization}
+
+Implementations MAY employ:
+
+- **Early termination**: Stop processing when no more states are reachable
+- **State deduplication**: Merge identical states during construction
+- **Transition caching**: Cache frequently used transition computations
+- **Batch processing**: Process multiple URIs in batches to amortize setup costs
+
+## Error Handling ## {#error-handling}
+
+### Invalid URIs ### {#invalid-uris}
+
+The resolver MUST handle invalid URIs gracefully:
+
+- **Malformed URIs**: Return an error indicating the URI cannot be parsed
+- **Empty URIs**: Return an error indicating the URI is empty
+- **Unsupported schemes**: Attempt resolution but may return no results
+
+### Resolution Failures ### {#resolution-failures}
+
+When no modules can handle a URI:
+
+- **Return empty result**: The resolver SHOULD return an empty list rather than an error
+- **Logging**: Implementations MAY log unsuccessful resolution attempts for debugging
+- **Fallback modules**: Implementations MAY provide fallback modules for common cases
 
 Security Considerations {#security}
 ===================================
+
+## Pattern Injection ## {#pattern-injection}
+
+Implementations MUST prevent pattern injection attacks:
+
+- **Input validation**: Validate all pattern strings before registration
+- **Sanitization**: Remove or escape potentially dangerous characters
+- **Pattern limits**: Impose reasonable limits on pattern complexity
+
+## Resource Consumption ## {#resource-consumption}
+
+The resolution algorithm MUST protect against resource exhaustion:
+
+- **State explosion**: Limit the number of active states during resolution
+- **Pattern complexity**: Impose limits on pattern depth and branching factor
+- **Memory usage**: Implement bounds on memory consumption for large pattern sets
+
+## URI Validation ## {#uri-validation}
+
+Input URIs SHOULD be validated before processing:
+
+- **Scheme validation**: Ensure schemes conform to RFC 3986
+- **Length limits**: Impose reasonable limits on URI length
+- **Character encoding**: Handle Unicode characters appropriately
 
 IANA Considerations {#iana}
 ===========================
@@ -144,6 +598,12 @@ The editors would like to thank the ASIMOV Platform community for their contribu
     "authors": ["Gregg Kellogg"],
     "href": "https://json-ld.github.io/yaml-ld/spec/",
     "status": "Draft Community Group Report"
+  },
+  "URLPATTERN": {
+    "title": "URL Pattern Standard",
+    "authors": ["Jeremy Roman"],
+    "href": "https://urlpattern.spec.whatwg.org/",
+    "status": "Living Standard"
   }
 }
 </pre>
@@ -152,3 +612,7 @@ Changes {#changes}
 ==================
 
 This section will document changes between versions of this specification.
+
+## Version 1.0 ## {#v1}
+
+Initial version of the ASIMOV Module Resolution Specification.
