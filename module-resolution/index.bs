@@ -1,3 +1,51 @@
+<pre class=metadata>
+Title: ASIMOV Module Resolution Specification (MRS)
+Shortname: module-resolution
+Level: none
+Status: LS
+URL: https://asimov-specs.github.io/module-resolution/
+Editor: Arto Bendiken, ASIMOV Systems https://asimov.systems, arto@asimov.systems
+Editor: Samuel Sarle, ASIMOV Systems https://asimov.systems, samuel@asimov.systems
+Repository: asimov-specs/asimov-specs
+Abstract: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris porttitor erat lorem. Donec eget suscipit augue, nec ultrices quam. Phasellus rutrum lectus eu augue tempor, quis lacinia arcu sodales. Suspendisse tempor eu felis in venenatis. Sed pellentesque dolor et felis placerat, quis dictum dolor vestibulum.
+Markup Shorthands: css no, markdown yes
+Ignored Terms: h1, h2, h3, h4, h5, h6, xmp
+Default Highlight: yaml
+</pre>
+
+<pre class=link-defaults>
+spec:html; type:element;
+    text:a
+    text:script
+    text:style
+    text:title
+    text:link
+spec:bikeshed-1; type:dfn; for:railroad; text:optional
+</pre>
+
+Introduction {#introduction}
+============================
+
+Examples {#examples}
+====================
+
+RDF Mapping {#rdf-mapping}
+==========================
+
+Security Considerations {#security}
+===================================
+
+IANA Considerations {#iana}
+===========================
+
+This specification does not require any IANA registrations.
+
+Acknowledgments {#acknowledgments}
+==================================
+
+The editors would like to thank the ASIMOV Platform community for their contributions and feedback during the development of this specification.
+
+<pre class=biblio>
 {
   "ASIMOV": {
     "title": "ASIMOV Platform Documentation",
@@ -83,5 +131,17 @@
     "deliveredBy": [
       "https://github.com/asimov-specs"
     ]
+  },
+  "YAML-LD": {
+    "title": "YAML-LD",
+    "authors": ["Gregg Kellogg"],
+    "href": "https://json-ld.github.io/yaml-ld/spec/",
+    "status": "Draft Community Group Report"
   }
 }
+</pre>
+
+Changes {#changes}
+==================
+
+This section will document changes between versions of this specification.

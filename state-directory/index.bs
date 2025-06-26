@@ -14,11 +14,11 @@ Default Highlight: yaml
 
 <pre class=link-defaults>
 spec:html; type:element;
-	text:a
-	text:script
-	text:style
-	text:title
-	text:link
+    text:a
+    text:script
+    text:style
+    text:title
+    text:link
 spec:bikeshed-1; type:dfn; for:railroad; text:optional
 </pre>
 
@@ -90,6 +90,19 @@ The editors would like to thank the ASIMOV Platform community for their contribu
     ],
     "etAl": true,
     "href": "https://asimov-specs.github.io/module-packaging/",
+    "deliveredBy": [
+      "https://github.com/asimov-specs"
+    ]
+  },
+  "ASIMOV-MRS": {
+    "title": "ASIMOV Module Resolution Specification",
+    "publisher": "ASIMOV Systems",
+    "authors": [
+      "Arto Bendiken",
+      "Samuel Sarle"
+    ],
+    "etAl": true,
+    "href": "https://asimov-specs.github.io/module-resolution/",
     "deliveredBy": [
       "https://github.com/asimov-specs"
     ]

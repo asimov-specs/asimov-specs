@@ -36,6 +36,16 @@ ASIMOV-MPS:
   href: https://asimov-specs.github.io/module-packaging/
   deliveredBy:
     - https://github.com/asimov-specs
+ASIMOV-MRS:
+  title: ASIMOV Module Resolution Specification
+  publisher: ASIMOV Systems
+  authors:
+    - Arto Bendiken
+    - Samuel Sarle
+  etAl: true
+  href: https://asimov-specs.github.io/module-resolution/
+  deliveredBy:
+    - https://github.com/asimov-specs
 ASIMOV-PPS:
   title: ASIMOV Program Patterns Specification
   publisher: ASIMOV Systems
