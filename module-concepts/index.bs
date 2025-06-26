@@ -25,6 +25,13 @@ spec:bikeshed-1; type:dfn; for:railroad; text:optional
 Introduction {#introduction}
 ============================
 
+The [[ASIMOV]] Platform is a polyglot development platform for trustworthy,
+neurosymbolic AI.
+
+This specification defines the fundamental concepts and principles underlying
+ASIMOV modules, providing the theoretical foundation for module architecture
+and design patterns.
+
 Examples {#examples}
 ====================
 

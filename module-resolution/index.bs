@@ -7,7 +7,7 @@ URL: https://asimov-specs.github.io/module-resolution/
 Editor: Arto Bendiken, ASIMOV Systems https://asimov.systems, arto@asimov.systems
 Editor: Samuel Sarle, ASIMOV Systems https://asimov.systems, samuel@asimov.systems
 Repository: asimov-specs/asimov-specs
-Abstract: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris porttitor erat lorem. Donec eget suscipit augue, nec ultrices quam. Phasellus rutrum lectus eu augue tempor, quis lacinia arcu sodales. Suspendisse tempor eu felis in venenatis. Sed pellentesque dolor et felis placerat, quis dictum dolor vestibulum.
+Abstract: Defines how data source URIs are resolved using pattern matching to locate ASIMOV modules that are able to extract and transform those data into a knowledge graph dataset.
 Markup Shorthands: css no, markdown yes
 Ignored Terms: h1, h2, h3, h4, h5, h6, xmp
 Default Highlight: yaml
@@ -25,6 +25,13 @@ spec:bikeshed-1; type:dfn; for:railroad; text:optional
 
 Introduction {#introduction}
 ============================
+
+The [[ASIMOV]] Platform is a polyglot development platform for trustworthy,
+neurosymbolic AI.
+
+This specification defines how data source URIs are resolved using pattern
+matching to locate ASIMOV modules that are able to extract and transform
+those data into a knowledge graph dataset.
 
 Examples {#examples}
 ====================

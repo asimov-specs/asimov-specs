@@ -6,7 +6,7 @@ Status: LS
 URL: https://asimov-specs.github.io/module-manifest/
 Editor: Arto Bendiken, ASIMOV Systems https://asimov.systems, arto@asimov.systems
 Repository: asimov-specs/asimov-specs
-Abstract: This specification defines the ASIMOV Module Manifest format, a YAML-based declarative format for describing ASIMOV Platform modules. Module manifests provide metadata about modules including their capabilities, dependencies, and the resources they handle. This enables the ASIMOV Platform to automatically discover, configure, and orchestrate modules based on their declared capabilities.
+Abstract: Describes the structure and requirements for ASIMOV module manifests, detailing how modules declare their capabilities, dependencies, and metadata.
 Markup Shorthands: css no, markdown yes
 Ignored Terms: h1, h2, h3, h4, h5, h6, xmp
 Default Highlight: yaml
@@ -24,6 +24,16 @@ spec:bikeshed-1; type:dfn; for:railroad; text:optional
 
 Introduction {#introduction}
 ============================
+
+The [[ASIMOV]] Platform is a polyglot development platform for trustworthy,
+neurosymbolic AI.
+
+This specification defines the ASIMOV Module Manifest format, a YAML-based
+declarative format for describing ASIMOV Platform modules. Module manifests
+provide metadata about modules including their capabilities, dependencies, and
+the resources they handle. This enables the ASIMOV Platform to automatically
+discover, configure, and orchestrate modules based on their declared
+capabilities.
 
 ## Overview ## {#overview}
 
