@@ -78,48 +78,48 @@ A module manifest consists of the following top-level fields:
 <table class="data">
   <thead>
     <tr>
-      <th>Field</th>
-      <th>Type</th>
-      <th>Required</th>
-      <th>Description</th>
+      <th align="left">Field</th>
+      <th align="left">Type</th>
+      <th align="left">Required</th>
+      <th align="left">Description</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><dfn>name</dfn></td>
-      <td>string</td>
-      <td>REQUIRED</td>
-      <td>The unique identifier for the module</td>
+      <td align="left"><dfn>name</dfn></td>
+      <td align="left">string</td>
+      <td align="left">REQUIRED</td>
+      <td align="left">The unique identifier for the module</td>
     </tr>
     <tr>
-      <td><dfn>label</dfn></td>
-      <td>string</td>
-      <td>OPTIONAL</td>
-      <td>A human-readable display name for the module</td>
+      <td align="left"><dfn>label</dfn></td>
+      <td align="left">string</td>
+      <td align="left">OPTIONAL</td>
+      <td align="left">A human-readable display name for the module</td>
     </tr>
     <tr>
-      <td><dfn>summary</dfn></td>
-      <td>string</td>
-      <td>OPTIONAL</td>
-      <td>A brief description of the module's purpose</td>
+      <td align="left"><dfn>summary</dfn></td>
+      <td align="left">string</td>
+      <td align="left">OPTIONAL</td>
+      <td align="left">A brief description of the module's purpose</td>
     </tr>
     <tr>
-      <td><dfn>links</dfn></td>
-      <td>array&lt;string&gt;</td>
-      <td>OPTIONAL</td>
-      <td>URLs to related resources (homepage, repository, documentation)</td>
+      <td align="left"><dfn>links</dfn></td>
+      <td align="left">array&lt;string&gt;</td>
+      <td align="left">OPTIONAL</td>
+      <td align="left">URLs to related resources (homepage, repository, documentation)</td>
     </tr>
     <tr>
-      <td><dfn>provides</dfn></td>
-      <td>object</td>
-      <td>OPTIONAL</td>
-      <td>Capabilities provided by the module</td>
+      <td align="left"><dfn>provides</dfn></td>
+      <td align="left">object</td>
+      <td align="left">OPTIONAL</td>
+      <td align="left">Capabilities provided by the module</td>
     </tr>
     <tr>
-      <td><dfn>handles</dfn></td>
-      <td>object</td>
-      <td>OPTIONAL</td>
-      <td>Resource types handled by the module</td>
+      <td align="left"><dfn>handles</dfn></td>
+      <td align="left">object</td>
+      <td align="left">OPTIONAL</td>
+      <td align="left">Resource types handled by the module</td>
     </tr>
   </tbody>
 </table>
@@ -404,12 +404,32 @@ Module manifests can be mapped to RDF using YAML-LD [[YAML-LD]] or JSON-LD [[JSO
 
 This specification defines the following RDF vocabulary with the base IRI `https://asimov-specs.github.io/module-manifest/`:
 
-| Prefix | Namespace IRI |
-|--------|--------------|
-| `mms:` | `https://asimov-specs.github.io/module-manifest/` |
-| `rdf:` | `http://www.w3.org/1999/02/22-rdf-syntax-ns#` |
-| `rdfs:` | `http://www.w3.org/2000/01/rdf-schema#` |
-| `xsd:` | `http://www.w3.org/2001/XMLSchema#` |
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Prefix</th>
+      <th align="left">Namespace IRI</th>
+      </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left"><code>mms:</code></td>
+      <td align="left"><code>https://asimov-specs.github.io/module-manifest/</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>rdf:</code></td>
+      <td align="left"><code>http://www.w3.org/1999/02/22-rdf-syntax-ns#</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>rdfs:</code></td>
+      <td align="left"><code>http://www.w3.org/2000/01/rdf-schema#</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>xsd:</code></td>
+      <td align="left"><code>http://www.w3.org/2001/XMLSchema#</code></td>
+    </tr>
+  </tbody>
+</table>
 
 ## Type Mappings ## {#rdf-types}
 
@@ -423,18 +443,67 @@ The following RDF types are defined:
 
 Module manifest fields map to RDF properties as follows:
 
-| YAML Field | RDF Property | Range |
-|------------|--------------|--------|
-| `name` | `mms:name` | `xsd:string` |
-| `label` | `rdfs:label` | `xsd:string` |
-| `summary` | `rdfs:comment` | `xsd:string` |
-| `links` | `rdfs:seeAlso` | `xsd:anyURI` |
-| `provides.programs` | `mms:providesProgram` | `mms:Program` |
-| `handles.url_protocols` | `mms:handlesProtocol` | `xsd:string` |
-| `handles.url_prefixes` | `mms:handlesPrefix` | `xsd:anyURI` |
-| `handles.url_patterns` | `mms:handlesPattern` | `xsd:string` |
-| `handles.file_extensions` | `mms:handlesExtension` | `xsd:string` |
-| `handles.content_types` | `mms:handlesContentType` | `xsd:string` |
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">YAML Field</th>
+      <th align="left">RDF Property</th>
+      <th align="left">Range</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left"><code>name</code></td>
+      <td align="left"><code>mms:name</code></td>
+      <td align="left"><code>xsd:string</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>label</code></td>
+      <td align="left"><code>rdfs:label</code></td>
+      <td align="left"><code>xsd:string</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>summary</code></td>
+      <td align="left"><code>rdfs:comment</code></td>
+      <td align="left"><code>xsd:string</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>links</code></td>
+      <td align="left"><code>rdfs:seeAlso</code></td>
+      <td align="left"><code>xsd:anyURI</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>provides.programs</code></td>
+      <td align="left"><code>mms:providesProgram</code></td>
+      <td align="left"><code>mms:Program</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>handles.url_protocols</code></td>
+      <td align="left"><code>mms:handlesProtocol</code></td>
+      <td align="left"><code>xsd:string</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>handles.url_prefixes</code></td>
+      <td align="left"><code>mms:handlesPrefix</code></td>
+      <td align="left"><code>xsd:anyURI</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>handles.url_patterns</code></td>
+      <td align="left"><code>mms:handlesPattern</code></td>
+      <td align="left"><code>xsd:string</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>handles.file_extensions</code></td>
+      <td align="left"><code>mms:handlesExtension</code></td>
+      <td align="left"><code>xsd:string</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>handles.content_types</code></td>
+      <td align="left"><code>mms:handlesContentType</code></td>
+      <td align="left"><code>xsd:string</code></td>
+    </tr>
+  </tbody>
+</table>
 
 ## JSON-LD Context ## {#jsonld-context}
 
@@ -557,47 +626,6 @@ IANA Considerations {#iana}
 ===========================
 
 This specification does not require any IANA registrations.
-
-References {#spec-references}
-========================
-
-## Normative References ## {#spec-normative}
-
-<dl>
-  <dt id="RFC2119">[[RFC2119]]
-  <dd>S. Bradner. <a href="https://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>. March 1997. Best Current Practice. URL: <a href="https://tools.ietf.org/html/rfc2119">https://tools.ietf.org/html/rfc2119</a>
-
-  <dt id="RFC2046">[[RFC2046]]
-  <dd>N. Freed; N. Borenstein. <a href="https://tools.ietf.org/html/rfc2046">Multipurpose Internet Mail Extensions (MIME) Part Two: Media Types</a>. November 1996. Draft Standard. URL: <a href="https://tools.ietf.org/html/rfc2046">https://tools.ietf.org/html/rfc2046</a>
-
-  <dt id="RFC6838">[[RFC6838]]
-  <dd>N. Freed; J. Klensin; T. Hansen. <a href="https://tools.ietf.org/html/rfc6838">Media Type Specifications and Registration Procedures</a>. January 2013. Best Current Practice. URL: <a href="https://tools.ietf.org/html/rfc6838">https://tools.ietf.org/html/rfc6838</a>
-
-  <dt id="YAML">[[YAML]]
-  <dd>Oren Ben-Kiki; Clark Evans; Ingy döt Net. <a href="https://yaml.org/spec/1.2/spec.html">YAML Ain't Markup Language (YAML™) Version 1.2</a>. 1 October 2009. URL: <a href="https://yaml.org/spec/1.2/spec.html">https://yaml.org/spec/1.2/spec.html</a>
-
-  <dt id="URLPATTERN">[[URLPATTERN]]
-  <dd>WHATWG. <a href="https://urlpattern.spec.whatwg.org/">URL Pattern Standard</a>. Living Standard. URL: <a href="https://urlpattern.spec.whatwg.org/">https://urlpattern.spec.whatwg.org/</a>
-
-  <dt id="JSON-LD">[[JSON-LD]]
-  <dd>Gregg Kellogg; Pierre-Antoine Champin; Dave Longley. <a href="https://www.w3.org/TR/json-ld11/">JSON-LD 1.1</a>. 16 July 2020. W3C Recommendation. URL: <a href="https://www.w3.org/TR/json-ld11/">https://www.w3.org/TR/json-ld11/</a>
-
-  <dt id="YAML-LD">[[YAML-LD]]
-  <dd>Gregg Kellogg. <a href="https://json-ld.github.io/yaml-ld/spec/">YAML-LD</a>. Draft Community Group Report. URL: <a href="https://json-ld.github.io/yaml-ld/spec/">https://json-ld.github.io/yaml-ld/spec/</a>
-
-  <dt id="IANA-MEDIA-TYPES">[[IANA-MEDIA-TYPES]]
-  <dd>IANA. <a href="https://www.iana.org/assignments/media-types/">Media Types</a>. URL: <a href="https://www.iana.org/assignments/media-types/">https://www.iana.org/assignments/media-types/</a>
-
-  <dt id="ASIMOV-PPS">[[ASIMOV-PPS]]
-  <dd>ASIMOV Systems. <a href="https://asimov-specs.github.io/program-patterns/">ASIMOV Program Patterns Specification</a>. URL: <a href="https://asimov-specs.github.io/program-patterns/">https://asimov-specs.github.io/program-patterns/</a>
-</dl>
-
-## Informative References ## {#spec-informative}
-
-<dl>
-  <dt id="ASIMOV">ASIMOV
-  <dd>ASIMOV Systems. <a href="https://asimov.systems">ASIMOV Platform Documentation</a>. URL: <a href="https://asimov.systems">https://asimov.systems</a>
-</dl>
 
 Acknowledgments {#acknowledgments}
 ==================================
