@@ -35,6 +35,38 @@ environments.
 Examples {#examples}
 ====================
 
+## Release Download ## {#release-download}
+
+```console
+$ wget https://github.com/asimov-modules/asimov-near-module/releases/download/0.0.2/asimov-near-module-macos-arm.tar.gz
+$ tar tvf asimov-near-module-macos-arm.tar.gz
+-rwxr-xr-x  0 runner staff 2295824 Jun 19 21:36 asimov-near-fetcher
+```
+
+## Release Archives ## {#release-archives}
+
+```console
+$ ls -l
+asimov-near-module-linux-arm-gnu.tar.gz
+asimov-near-module-linux-arm-gnu.tar.gz.sha256
+asimov-near-module-linux-arm-musl.tar.gz
+asimov-near-module-linux-arm-musl.tar.gz.sha256
+asimov-near-module-linux-x86-gnu.tar.gz
+asimov-near-module-linux-x86-gnu.tar.gz.sha256
+asimov-near-module-linux-x86-musl.tar.gz
+asimov-near-module-linux-x86-musl.tar.gz.sha256
+asimov-near-module-macos-arm.tar.gz
+asimov-near-module-macos-arm.tar.gz.sha256
+asimov-near-module-macos-x86.tar.gz
+asimov-near-module-macos-x86.tar.gz.sha256
+asimov-near-module-windows-x64.zip
+asimov-near-module-windows-x64.zip.sha256
+```
+
+Note: The SHA-256 checksums can be used to verify the integrity of the downloaded archives.
+
+Note: We don't build for 32-bit systems, only 64-bit systems.
+
 RDF Mapping {#rdf-mapping}
 ==========================
 

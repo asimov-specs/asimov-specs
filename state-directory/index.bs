@@ -28,12 +28,38 @@ Introduction {#introduction}
 The [[ASIMOV]] Platform is a polyglot development platform for trustworthy,
 neurosymbolic AI.
 
-This specification eefines the organization and management of ASIMOV state
+This specification defines the organization and management of ASIMOV state
 directories (`$HOME/.asimov/`), ensuring consistent data storage and retrieval
 mechanisms.
 
 Examples {#examples}
 ====================
+
+```console
+$ tree $HOME/.asimov
+.
+├── envs
+├── libexec
+│   ├── asimov-apify-fetcher
+│   ├── asimov-apify-importer
+│   ├── asimov-brightdata-cataloger
+│   ├── asimov-brightdata-fetcher
+│   ├── asimov-brightdata-importer
+│   ├── asimov-jinja-runner
+│   ├── asimov-jq-runner
+│   ├── asimov-near-fetcher
+│   ├── asimov-nexus-importer
+│   ├── asimov-serpapi-fetcher
+│   └── asimov-serpapi-importer
+└── modules
+    ├── apify.yaml
+    ├── brightdata.yaml
+    ├── jinja.yaml
+    ├── jq.yaml
+    ├── near.yaml
+    ├── nexus.yaml
+    └── serpapi.yaml
+```
 
 RDF Mapping {#rdf-mapping}
 ==========================
