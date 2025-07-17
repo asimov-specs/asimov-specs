@@ -3,6 +3,11 @@
 Language runtime engine. Consumes text input conforming to a grammar, executes
 it, and produces the execution result as output.
 
+<figure>
+    <figcaption>Data flow for runners</figcaption>
+    <object type="image/svg+xml" data="img/runner.mmd.svg"></object>
+</figure>
+
 ### Arguments ### {#writer-arguments}
 
 <table class="data">

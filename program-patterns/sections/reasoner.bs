@@ -2,6 +2,11 @@
 
 RDF dataset entailer. Consumes RDF input, produces entailed RDF output.
 
+<figure>
+    <figcaption>Data flow for reasoners</figcaption>
+    <object type="image/svg+xml" data="img/reasoner.mmd.svg"></object>
+</figure>
+
 ### Arguments ### {#writer-arguments}
 
 <table class="data">

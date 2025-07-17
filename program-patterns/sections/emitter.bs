@@ -1,6 +1,11 @@
 ## Emitter ## {#emitter}
 
-Value generator. Produces an RDF output.
+Value generator. Takes no input, produces an RDF output.
+
+<figure>
+    <figcaption>Data flow for emitters</figcaption>
+    <object type="image/svg+xml" data="img/emitter.mmd.svg"></object>
+</figure>
 
 ### Arguments ### {#writer-arguments}
 

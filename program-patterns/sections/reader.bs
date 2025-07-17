@@ -2,6 +2,11 @@
 
 RDF dataset importer. Consumes some input, produces RDF output.
 
+<figure>
+    <figcaption>Data flow for readers</figcaption>
+    <object type="image/svg+xml" data="img/reader.mmd.svg"></object>
+</figure>
+
 ### Arguments ### {#writer-arguments}
 
 <table class="data">

@@ -2,6 +2,11 @@
 
 RDF dataset proxy. Consumes SPARQL input, produces RDF output.
 
+<figure>
+    <figcaption>Data flow for adapters</figcaption>
+    <object type="image/svg+xml" data="img/adapter.mmd.svg"></object>
+</figure>
+
 ### Arguments ### {#writer-arguments}
 
 <table class="data">

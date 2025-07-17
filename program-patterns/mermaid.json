@@ -1,0 +1,7 @@
+{
+  "securityLevel": "loose",
+  "theme": "dark",
+  "themeCSS": ".messageText { stroke: none; }",
+  "backgroundColor": "transparent",
+  "deterministicIds": true
+}

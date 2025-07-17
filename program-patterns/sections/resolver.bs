@@ -3,6 +3,11 @@
 URI resolver. Takes a URI (that is, URN or URL) input, produces a resolved URL
 output.
 
+<figure>
+    <figcaption>Data flow for resolvers</figcaption>
+    <object type="image/svg+xml" data="img/resolver.mmd.svg"></object>
+</figure>
+
 ### Arguments ### {#writer-arguments}
 
 <table class="data">

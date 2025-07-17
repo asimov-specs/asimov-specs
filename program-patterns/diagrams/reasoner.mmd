@@ -1,0 +1,11 @@
+block-beta
+    columns 7
+    Graph1 space:2 Reasoner space:2 Graph2
+    Graph1-- "input" -->Reasoner
+    Reasoner-- "output" -->Graph2
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Reasoner block
+    class Graph1 hidden
+    class Graph2 hidden

@@ -2,6 +2,11 @@
 
 LLM inference provider. Consumes prompt input, produces response output.
 
+<figure>
+    <figcaption>Data flow for prompters</figcaption>
+    <object type="image/svg+xml" data="img/prompter.mmd.svg"></object>
+</figure>
+
 ### Arguments ### {#writer-arguments}
 
 <table class="data">

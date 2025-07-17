@@ -2,6 +2,11 @@
 
 RDF dataset exporter. Consumes RDF input, produces some output.
 
+<figure>
+    <figcaption>Data flow for writers</figcaption>
+    <object type="image/svg+xml" data="img/writer.mmd.svg"></object>
+</figure>
+
 ### Arguments ### {#writer-arguments}
 
 <table class="data">
