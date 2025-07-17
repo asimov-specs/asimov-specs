@@ -1,0 +1,63 @@
+## Prompter ## {#prompter}
+
+LLM inference provider. Consumes prompt input, produces response output.
+
+### Arguments ### {#writer-arguments}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Argument</th>
+      <th align="left">Arity</th>
+      <th align="left">Default</th>
+      <th align="left">Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">`INPUT-FILE`</td>
+      <td align="left">0..1</td>
+      <td align="left">`-` (`/dev/stdin`)</td>
+      <td align="left">The input file path.</td>
+    </tr>
+    <tr>
+      <td align="left">`OUTPUT-FILE`</td>
+      <td align="left">0..1</td>
+      <td align="left">`-` (`/dev/stdout`)</td>
+      <td align="left">The output file path.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Options ### {#prompter-options}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Option</th>
+      <th align="left">Flag</th>
+      <th align="left">Default</th>
+      <th align="left">Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">`--input=FORMAT`</td>
+      <td align="left">`-i`</td>
+      <td align="left">`text`</td>
+      <td align="left">The input format.</td>
+    </tr>
+    <tr>
+      <td align="left">`--model=MODEL`</td>
+      <td align="left">`-m`</td>
+      <td align="left">`auto`</td>
+      <td align="left">The inference model.</td>
+    </tr>
+    <tr>
+      <td align="left">`--output=FORMAT`</td>
+      <td align="left">`-o`</td>
+      <td align="left">`text`</td>
+      <td align="left">The output format.</td>
+    </tr>
+  </tbody>
+</table>

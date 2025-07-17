@@ -1,0 +1,45 @@
+## Fetcher ## {#fetcher}
+
+URL protocol fetcher. Consumes a URL input, produces RDF output.
+
+### Arguments ### {#writer-arguments}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Argument</th>
+      <th align="left">Arity</th>
+      <th align="left">Default</th>
+      <th align="left">Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">`INPUT-URL`</td>
+      <td align="left">1</td>
+      <td align="left">none</td>
+      <td align="left">The input URL.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Options ### {#fetcher-options}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Option</th>
+      <th align="left">Flag</th>
+      <th align="left">Default</th>
+      <th align="left">Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">`--output=FORMAT`</td>
+      <td align="left">`-o`</td>
+      <td align="left">`jsonld`</td>
+      <td align="left">The output format.</td>
+    </tr>
+  </tbody>
+</table>

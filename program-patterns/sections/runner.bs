@@ -1,0 +1,46 @@
+## Runner ## {#runner}
+
+Language runtime engine. Consumes text input conforming to a grammar, executes
+it, and produces the execution result as output.
+
+### Arguments ### {#writer-arguments}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Argument</th>
+      <th align="left">Arity</th>
+      <th align="left">Default</th>
+      <th align="left">Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">`INPUT-FILE`</td>
+      <td align="left">0..1</td>
+      <td align="left">`-` (`/dev/stdin`)</td>
+      <td align="left">The input file path.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Options ### {#runner-options}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Option</th>
+      <th align="left">Flag</th>
+      <th align="left">Default</th>
+      <th align="left">Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">`--define=VAR=VAL`</td>
+      <td align="left">`-D`</td>
+      <td align="left">none</td>
+      <td align="left">A key/value definition.</td>
+    </tr>
+  </tbody>
+</table>

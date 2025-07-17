@@ -1,0 +1,28 @@
+## Emitter ## {#emitter}
+
+Value generator. Produces an RDF output.
+
+### Arguments ### {#writer-arguments}
+
+Emitters require no positional arguments.
+
+### Options ### {#emitter-options}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Option</th>
+      <th align="left">Flag</th>
+      <th align="left">Default</th>
+      <th align="left">Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">`--output=FORMAT`</td>
+      <td align="left">`-o`</td>
+      <td align="left">`jsonld`</td>
+      <td align="left">The output format.</td>
+    </tr>
+  </tbody>
+</table>
