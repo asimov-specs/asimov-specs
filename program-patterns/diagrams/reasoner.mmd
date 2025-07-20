@@ -1,11 +1,19 @@
+---
+title: Data flow for reasoners
+---
 block-beta
-    columns 7
-    Graph1 space:2 Reasoner space:2 Graph2
-    Graph1-- "input" -->Reasoner
-    Reasoner-- "output" -->Graph2
+  classDef block height:48px,padding:8px;
 
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class Reasoner block
-    class Graph1 hidden
-    class Graph2 hidden
+  columns 5
+  space:2 Options space:2
+  space:5
+  Input space Program space Output
+
+  Options --> Program
+  Input-- "input" -->Program
+  Program-- "output" -->Output
+
+  Options[/"Options"\]
+  Program["Reasoner"]
+  Input[/"Graph"/]
+  Output[/"Graph"/]

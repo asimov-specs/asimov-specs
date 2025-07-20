@@ -1,11 +1,19 @@
+---
+title: Data flow for resolvers
+---
 block-beta
-    columns 7
-    URI space:2 Resolver space:2 URL
-    URI-- "input" -->Resolver
-    Resolver-- "output" -->URL
+  classDef block height:48px,padding:8px;
 
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class Resolver block
-    class URI hidden
-    class URL hidden
+  columns 5
+  space:2 Options space:2
+  space:5
+  Input space Program space Output
+
+  Options --> Program
+  Input-- "input" -->Program
+  Program-- "output" -->Output
+
+  Options[/"Options"\]
+  Program["Resolver"]
+  Input[/"URI"/]
+  Output[/"URL"/]

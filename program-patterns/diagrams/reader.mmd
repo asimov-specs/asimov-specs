@@ -1,11 +1,19 @@
+---
+title: Data flow for readers
+---
 block-beta
-    columns 7
-    Any space:2 Reader space:2 Graph
-    Any-- "input" -->Reader
-    Reader-- "output" -->Graph
+  classDef block height:48px,padding:8px;
 
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class Reader block
-    class Any hidden
-    class Graph hidden
+  columns 5
+  space:2 Options space:2
+  space:5
+  Input space Program space Output
+
+  Options --> Program
+  Input-- "input" -->Program
+  Program-- "output" -->Output
+
+  Options[/"Options"\]
+  Program["Reader"]
+  Input[/"Any"/]
+  Output[/"Graph"/]

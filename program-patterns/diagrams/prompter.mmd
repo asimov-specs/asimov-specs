@@ -1,11 +1,19 @@
+---
+title: Data flow for prompters
+---
 block-beta
-    columns 7
-    Prompt space:2 Prompter space:2 Response
-    Prompt-- "input" -->Prompter
-    Prompter-- "output" -->Response
+  classDef block height:48px,padding:8px;
 
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class Prompter block
-    class Prompt hidden
-    class Response hidden
+  columns 5
+  space:2 Options space:2
+  space:5
+  Input space Program space Output
+
+  Options --> Program
+  Input-- "input" -->Program
+  Program-- "output" -->Output
+
+  Options[/"Options"\]
+  Program["Prompter"]
+  Input[/"Prompt"/]
+  Output[/"Response"/]
