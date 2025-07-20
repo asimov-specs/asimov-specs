@@ -49,13 +49,13 @@ RDF dataset entailer. Consumes RDF input, produces entailed RDF output.
     <tr>
       <td align="left">`--input=FORMAT`</td>
       <td align="left">`-i`</td>
-      <td align="left">`auto`</td>
+      <td align="left">`jsonl`</td>
       <td align="left">The input format.</td>
     </tr>
     <tr>
       <td align="left">`--output=FORMAT`</td>
       <td align="left">`-o`</td>
-      <td align="left">`jsonld`</td>
+      <td align="left">`jsonl`</td>
       <td align="left">The output format.</td>
     </tr>
   </tbody>

@@ -26,7 +26,7 @@ Emitters require no positional arguments.
     <tr>
       <td align="left">`--output=FORMAT`</td>
       <td align="left">`-o`</td>
-      <td align="left">`jsonld`</td>
+      <td align="left">`jsonl`</td>
       <td align="left">The output format.</td>
     </tr>
   </tbody>

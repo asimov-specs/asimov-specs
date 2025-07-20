@@ -43,7 +43,7 @@ URL protocol fetcher. Consumes a URL input, produces RDF output.
     <tr>
       <td align="left">`--output=FORMAT`</td>
       <td align="left">`-o`</td>
-      <td align="left">`jsonld`</td>
+      <td align="left">`jsonl`</td>
       <td align="left">The output format.</td>
     </tr>
   </tbody>

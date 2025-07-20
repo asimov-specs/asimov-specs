@@ -49,7 +49,7 @@ RDF dataset exporter. Consumes RDF input, produces some output.
     <tr>
       <td align="left">`--input=FORMAT`</td>
       <td align="left">`-i`</td>
-      <td align="left">`auto`</td>
+      <td align="left">`jsonl`</td>
       <td align="left">The input format.</td>
     </tr>
     <tr>
