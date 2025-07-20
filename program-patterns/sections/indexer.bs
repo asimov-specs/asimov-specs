@@ -1,0 +1,56 @@
+## Indexer ## {#indexer}
+
+RDF dataset indexer. Consumes RDF input, maintains a persistent index.
+
+<figure>
+    <figcaption>Data flow for indexers</figcaption>
+    <object type="image/svg+xml" data="img/indexer.mmd.svg"></object>
+</figure>
+
+### Arguments ### {#indexer-arguments}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Argument</th>
+      <th align="left">Arity</th>
+      <th align="left">Default</th>
+      <th align="left">Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">`INPUT-FILE`</td>
+      <td align="left">0..1</td>
+      <td align="left">`-` (`/dev/stdin`)</td>
+      <td align="left">The input file path.</td>
+    </tr>
+    <tr>
+      <td align="left">`INDEX-FILE`</td>
+      <td align="left">1</td>
+      <td align="left">none</td>
+      <td align="left">The index file path.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Options ### {#indexer-options}
+
+<table class="data">
+  <thead>
+    <tr>
+      <th align="left">Option</th>
+      <th align="left">Flag</th>
+      <th align="left">Default</th>
+      <th align="left">Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left">`--input=FORMAT`</td>
+      <td align="left">`-i`</td>
+      <td align="left">`jsonl`</td>
+      <td align="left">The input format.</td>
+    </tr>
+  </tbody>
+</table>

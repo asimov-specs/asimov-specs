@@ -1,0 +1,24 @@
+---
+title: Data flow for indexers
+---
+block-beta
+  classDef block height:48px,padding:8px;
+
+  columns 5
+  space:2 Options space:2
+  space:5
+  Input space Program space Output
+  space:5
+  space:2 State space:2
+
+  Options --> Program
+  Input-- "input" -->Program
+  Program-- "output" -->Output
+  Program --> State
+  State --> Program
+
+  Options[/"Options"\]
+  Program["Indexer"]
+  Input[/"Graph"/]
+  Output[/"Log"/]
+  State[("Index")]

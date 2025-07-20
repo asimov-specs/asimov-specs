@@ -82,6 +82,14 @@ Patterns {#patterns}
       <td align="left">1</td>
     </tr>
     <tr>
+      <td align="left"><dfn>Indexer</dfn></td>
+      <td align="left">RDF dataset indexer.</td>
+      <td align="left">RDF</td>
+      <td align="left">N</td>
+      <td align="left">-</td>
+      <td align="left">0</td>
+    </tr>
+    <tr>
       <td align="left"><dfn>Prompter</dfn></td>
       <td align="left">LLM inference provider.</td>
       <td align="left">text</td>
@@ -146,6 +154,10 @@ path: sections/emitter.bs
 
 <pre class=include>
 path: sections/fetcher.bs
+</pre>
+
+<pre class=include>
+path: sections/indexer.bs
 </pre>
 
 <pre class=include>
