@@ -66,6 +66,14 @@ Patterns {#patterns}
       <td align="left">N</td>
     </tr>
     <tr>
+      <td align="left"><dfn>Compiler</dfn></td>
+      <td align="left">Prompt compiler.</td>
+      <td align="left">text</td>
+      <td align="left">1</td>
+      <td align="left">SPARQL</td>
+      <td align="left">1</td>
+    </tr>
+    <tr>
       <td align="left"><dfn>Emitter</dfn></td>
       <td align="left">Value generator.</td>
       <td align="left">-</td>
@@ -146,6 +154,10 @@ path: sections/adapter.bs
 
 <pre class=include>
 path: sections/cataloger.bs
+</pre>
+
+<pre class=include>
+path: sections/compiler.bs
 </pre>
 
 <pre class=include>

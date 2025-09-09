@@ -7,7 +7,7 @@ URL protocol fetcher. Consumes a URL input, produces RDF output.
     <object type="image/svg+xml" data="img/fetcher.mmd.svg"></object>
 </figure>
 
-### Arguments ### {#writer-arguments}
+### Arguments ### {#fetcher-arguments}
 
 <table class="data">
   <thead>

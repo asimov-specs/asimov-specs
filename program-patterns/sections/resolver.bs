@@ -8,7 +8,7 @@ output.
     <object type="image/svg+xml" data="img/resolver.mmd.svg"></object>
 </figure>
 
-### Arguments ### {#writer-arguments}
+### Arguments ### {#resolver-arguments}
 
 <table class="data">
   <thead>

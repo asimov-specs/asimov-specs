@@ -7,7 +7,7 @@ Directory iterator. Takes a URL input, produces RDF output.
     <object type="image/svg+xml" data="img/cataloger.mmd.svg"></object>
 </figure>
 
-### Arguments ### {#writer-arguments}
+### Arguments ### {#cataloger-arguments}
 
 <table class="data">
   <thead>

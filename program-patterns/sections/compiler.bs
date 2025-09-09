@@ -1,14 +1,14 @@
-## Runner ## {#runner}
+## Compiler ## {#compiler}
 
-Language runtime engine. Consumes text input conforming to a grammar, executes
-it, and produces the execution result as output.
+Prompt compiler. Consumes natural-language text input, produces a corresponding
+SPARQL graph query as output.
 
 <figure>
-    <figcaption>Data flow for runners</figcaption>
-    <object type="image/svg+xml" data="img/runner.mmd.svg"></object>
+    <figcaption>Data flow for compilers</figcaption>
+    <object type="image/svg+xml" data="img/compiler.mmd.svg"></object>
 </figure>
 
-### Arguments ### {#runner-arguments}
+### Arguments ### {#compiler-arguments}
 
 <table class="data">
   <thead>
@@ -29,7 +29,7 @@ it, and produces the execution result as output.
   </tbody>
 </table>
 
-### Options ### {#runner-options}
+### Options ### {#compiler-options}
 
 <table class="data">
   <thead>
@@ -41,11 +41,6 @@ it, and produces the execution result as output.
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td align="left">`--define=VAR=VAL`</td>
-      <td align="left">`-D`</td>
-      <td align="left">none</td>
-      <td align="left">A key/value definition.</td>
-    </tr>
+    <!-- TODO -->
   </tbody>
 </table>

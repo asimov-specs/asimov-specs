@@ -7,7 +7,7 @@ Value generator. Takes no input, produces an RDF output.
     <object type="image/svg+xml" data="img/emitter.mmd.svg"></object>
 </figure>
 
-### Arguments ### {#writer-arguments}
+### Arguments ### {#emitter-arguments}
 
 Emitters require no positional arguments.
 
