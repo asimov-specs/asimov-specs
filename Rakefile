@@ -20,9 +20,27 @@ SPECS.each do |spec|
   end
 end
 
-task publish: SPECS.map { |spec| "#{spec}/index.html" } do |t|
+task publish: %w(publish:html publish:img)
+
+namespace :publish do
+  task html: SPECS.map { |spec| "#{spec}/index.html" } do |t|
+    t.prerequisites.each do |path|
+      output = `rsync -a #{path} ../asimov-specs.github.io/#{path}`
+      warn output unless $?.success?
+    end
+  end
+
+  task img: %w(program-patterns).map { |spec| "#{spec}/img" } do |t|
+    t.prerequisites.each do |path|
+      output = `rsync -a #{path}/ ../asimov-specs.github.io/#{path}/`
+      warn output unless $?.success?
+    end
+  end
+end
+
+task export: SPECS.map { |spec| "#{spec}/index.bs" } do |t|
   t.prerequisites.each do |path|
-    output = `cp -p #{path} ../asimov-specs.github.io/#{path}`
+    output = `cp -p #{path} export/#{File.dirname(path)}.bs`
     warn output unless $?.success?
   end
 end
