@@ -1,6 +1,8 @@
 # ASIMOV Specifications
 
-## ASIMOV Module Concepts Specification (MCS)
+## Specifications
+
+### ASIMOV Module Concepts Specification (MCS)
 
 👉 [asimov-specs.github.io/module-concepts/](https://asimov-specs.github.io/module-concepts/)
 
@@ -27,7 +29,7 @@
   ```
 </details>
 
-## ASIMOV Module Manifest Specification (MMS)
+### ASIMOV Module Manifest Specification (MMS)
 
 👉 [asimov-specs.github.io/module-manifest/](https://asimov-specs.github.io/module-manifest/)
 
@@ -55,7 +57,7 @@
 </details>
 
 
-## ASIMOV Module Packaging Specification (MPS)
+### ASIMOV Module Packaging Specification (MPS)
 
 👉 [asimov-specs.github.io/module-packaging/](https://asimov-specs.github.io/module-packaging/)
 
@@ -82,7 +84,7 @@
   ```
 </details>
 
-## ASIMOV Program Patterns Specification (PPS)
+### ASIMOV Program Patterns Specification (PPS)
 
 👉 [asimov-specs.github.io/program-patterns/](https://asimov-specs.github.io/program-patterns/)
 
@@ -109,7 +111,7 @@
   ```
 </details>
 
-## ASIMOV State Directory Specification (SDS)
+### ASIMOV State Directory Specification (SDS)
 
 👉 [asimov-specs.github.io/state-directory/](https://asimov-specs.github.io/state-directory/)
 
@@ -135,3 +137,9 @@
   </pre>
   ```
 </details>
+
+## Prerequisites
+
+```bash
+uv tool install bikeshed
+```

@@ -1,3 +1,4 @@
+# `uv tool install bikeshed`
 BIKESHED = ENV['BIKESHED'] || 'bikeshed'
 
 SPECS = %w[
