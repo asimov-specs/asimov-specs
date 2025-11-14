@@ -99,13 +99,19 @@ A module manifest consists of the following top-level fields:
       <td align="left"><dfn>name</dfn></td>
       <td align="left">string</td>
       <td align="left">REQUIRED</td>
-      <td align="left">The unique identifier for the module</td>
+      <td align="left">The unique name and identifier for the module</td>
     </tr>
     <tr>
       <td align="left"><dfn>label</dfn></td>
       <td align="left">string</td>
       <td align="left">OPTIONAL</td>
       <td align="left">A human-readable display name for the module</td>
+    </tr>
+    <tr>
+      <td align="left"><dfn>title</dfn></td>
+      <td align="left">string</td>
+      <td align="left">OPTIONAL</td>
+      <td align="left">A human-readable display title for the module</td>
     </tr>
     <tr>
       <td align="left"><dfn>summary</dfn></td>
@@ -118,6 +124,18 @@ A module manifest consists of the following top-level fields:
       <td align="left">array&lt;string&gt;</td>
       <td align="left">OPTIONAL</td>
       <td align="left">URLs to related resources (homepage, repository, documentation)</td>
+    </tr>
+    <tr>
+      <td align="left"><dfn>tags</dfn></td>
+      <td align="left">array&lt;string&gt;</td>
+      <td align="left">OPTIONAL</td>
+      <td align="left">Keywords or categories associated with the module</td>
+    </tr>
+    <tr>
+      <td align="left"><dfn>requires</dfn></td>
+      <td align="left">object</td>
+      <td align="left">OPTIONAL</td>
+      <td align="left">Capabilities required by the module</td>
     </tr>
     <tr>
       <td align="left"><dfn>provides</dfn></td>
@@ -147,6 +165,10 @@ The <a>name</a> field MUST contain a string that uniquely identifies the module 
 
 The <a>label</a> field contains an optional human-readable display name for the module. If provided, it SHOULD be concise and suitable for display in user interfaces.
 
+## The title Field ## {#title-field}
+
+The <a>title</a> field contains an optional human-readable display title for the module. If provided, it SHOULD be concise and suitable for display in user interfaces.
+
 ## The summary Field ## {#summary-field}
 
 The <a>summary</a> field contains an optional brief description of the module's purpose and functionality. This SHOULD be a single sentence that clearly explains what the module does.
@@ -162,11 +184,29 @@ The <a>links</a> field contains an optional array of URLs pointing to resources 
 
 All URLs in this array MUST be well-formed and use HTTPS where applicable.
 
+## The tags Field ## {#tags-field}
+
+TBD
+
+## The requires Section ## {#requires-section}
+
+TBD
+
+### modules ### {#requires-modules}
+
+### programs ### {#requires-programs}
+
+### libraries ### {#requires-libraries}
+
+### models ### {#requires-models}
+
+### datasets ### {#requires-datasets}
+
 ## The provides Section ## {#provides-section}
 
 The <a>provides</a> section declares the capabilities that a module makes available to the platform. Currently, the following capability types are defined:
 
-### programs ### {#programs}
+### programs ### {#provides-programs}
 
 The `programs` field contains an array of executable program names that the module provides. These programs:
 
@@ -473,6 +513,11 @@ Module manifest fields map to RDF properties as follows:
       <td align="left"><code>xsd:string</code></td>
     </tr>
     <tr>
+      <td align="left"><code>title</code></td>
+      <td align="left"><code>dc:title</code></td>
+      <td align="left"><code>xsd:string</code></td>
+    </tr>
+    <tr>
       <td align="left"><code>summary</code></td>
       <td align="left"><code>rdfs:comment</code></td>
       <td align="left"><code>xsd:string</code></td>
@@ -481,6 +526,16 @@ Module manifest fields map to RDF properties as follows:
       <td align="left"><code>links</code></td>
       <td align="left"><code>rdfs:seeAlso</code></td>
       <td align="left"><code>xsd:anyURI</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>tags</code></td>
+      <td align="left"><code>TBD</code></td>
+      <td align="left"><code>xsd:string</code></td>
+    </tr>
+    <tr>
+      <td align="left"><code>requires</code></td>
+      <td align="left"><code>TBD</code></td>
+      <td align="left"><code>TBD</code></td>
     </tr>
     <tr>
       <td align="left"><code>provides.programs</code></td>
