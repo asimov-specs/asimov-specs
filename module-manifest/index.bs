@@ -194,6 +194,8 @@ TBD
 
 ### modules ### {#requires-modules}
 
+### platforms ### {#requires-platforms}
+
 ### programs ### {#requires-programs}
 
 ### libraries ### {#requires-libraries}
@@ -201,6 +203,12 @@ TBD
 ### models ### {#requires-models}
 
 ### datasets ### {#requires-datasets}
+
+### ontologies ### {#requires-ontologies}
+
+### classes ### {#requires-classes}
+
+### datatypes ### {#requires-datatypes}
 
 ## The provides Section ## {#provides-section}
 
