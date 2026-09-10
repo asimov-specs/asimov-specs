@@ -58,14 +58,6 @@ Patterns {#patterns}
       <td align="left">N</td>
     </tr>
     <tr>
-      <td align="left"><dfn>Cataloger</dfn></td>
-      <td align="left">Directory iterator.</td>
-      <td align="left">URL</td>
-      <td align="left">1</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-    </tr>
-    <tr>
       <td align="left"><dfn>Compiler</dfn></td>
       <td align="left">Prompt compiler.</td>
       <td align="left">text</td>
@@ -96,6 +88,14 @@ Patterns {#patterns}
       <td align="left">N</td>
       <td align="left">-</td>
       <td align="left">0</td>
+    </tr>
+    <tr>
+      <td align="left"><dfn id="lister-pattern">Lister</dfn></td>
+      <td align="left">Directory iterator.</td>
+      <td align="left">URL</td>
+      <td align="left">1</td>
+      <td align="left">RDF</td>
+      <td align="left">N</td>
     </tr>
     <tr>
       <td align="left"><dfn id="matcher-pattern">Matcher</dfn></td>
@@ -161,10 +161,6 @@ path: sections/adapter.bs
 </pre>
 
 <pre class=include>
-path: sections/cataloger.bs
-</pre>
-
-<pre class=include>
 path: sections/compiler.bs
 </pre>
 
@@ -178,6 +174,10 @@ path: sections/fetcher.bs
 
 <pre class=include>
 path: sections/indexer.bs
+</pre>
+
+<pre class=include>
+path: sections/lister.bs
 </pre>
 
 <pre class=include>
