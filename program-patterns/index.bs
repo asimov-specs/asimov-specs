@@ -98,6 +98,14 @@ Patterns {#patterns}
       <td align="left">0</td>
     </tr>
     <tr>
+      <td align="left"><dfn id="matcher-pattern">Matcher</dfn></td>
+      <td align="left">Exact or approximate matcher.</td>
+      <td align="left">RDF</td>
+      <td align="left">N</td>
+      <td align="left">RDF</td>
+      <td align="left">N</td>
+    </tr>
+    <tr>
       <td align="left"><dfn>Prompter</dfn></td>
       <td align="left">LLM inference provider.</td>
       <td align="left">text</td>
@@ -170,6 +178,10 @@ path: sections/fetcher.bs
 
 <pre class=include>
 path: sections/indexer.bs
+</pre>
+
+<pre class=include>
+path: sections/matcher.bs
 </pre>
 
 <pre class=include>
