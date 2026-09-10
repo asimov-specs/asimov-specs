@@ -42,9 +42,9 @@ $ tree $HOME/.asimov
 ├── libexec
 │   ├── asimov-apify-fetcher
 │   ├── asimov-apify-importer
-│   ├── asimov-brightdata-lister
 │   ├── asimov-brightdata-fetcher
 │   ├── asimov-brightdata-importer
+│   ├── asimov-brightdata-lister
 │   ├── asimov-jinja-runner
 │   ├── asimov-jq-runner
 │   ├── asimov-near-fetcher
