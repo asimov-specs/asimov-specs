@@ -1,13 +1,13 @@
-## Cataloger ## {#cataloger}
+## Lister ## {#lister}
 
 Directory iterator. Takes a URL input, produces RDF output.
 
 <figure>
-    <figcaption>Data flow for catalogers</figcaption>
-    <object type="image/svg+xml" data="img/cataloger.mmd.svg"></object>
+    <figcaption>Data flow for listers</figcaption>
+    <object type="image/svg+xml" data="img/lister.mmd.svg"></object>
 </figure>
 
-### Arguments ### {#cataloger-arguments}
+### Arguments ### {#lister-arguments}
 
 <table class="data">
   <thead>
@@ -28,7 +28,7 @@ Directory iterator. Takes a URL input, produces RDF output.
   </tbody>
 </table>
 
-### Options ### {#cataloger-options}
+### Options ### {#lister-options}
 
 <table class="data">
   <thead>
