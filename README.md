@@ -142,4 +142,6 @@
 
 ```bash
 uv tool install bikeshed
+brew install mermaid-cli
+npx puppeteer browsers install chrome-headless-shell@152.0.7977.54
 ```
