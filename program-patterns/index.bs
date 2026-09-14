@@ -3,226 +3,1189 @@ Title: ASIMOV Program Patterns Specification (PPS)
 Shortname: program-patterns
 Level: none
 Status: LS
+Date: 2026-09-14
 URL: https://asimov-specs.github.io/program-patterns/
 Editor: Arto Bendiken, ASIMOV Systems https://asimov.systems, arto@asimov.systems
 Repository: asimov-specs/asimov-specs
-Abstract: Establishes standardized programming patterns and best practices for developing robust and maintainable ASIMOV software components.
+Abstract: Defines interoperable command-line contracts for ASIMOV programs that import, query, generate, transform, index, and export RDF datasets; resolve and retrieve resources; provide language-model inference; and execute program text. Specifies invocation, data transport, completion, and error handling, together with requirements for hosts that compose these programs.
 Markup Shorthands: css no, markdown yes
-Ignored Terms: h1, h2, h3, h4, h5, h6, xmp
-Default Highlight: yaml
+Default Highlight: text
+Boilerplate: conformance no
 </pre>
 
-<pre class=link-defaults>
-spec:html; type:element;
-    text:a
-    text:script
-    text:style
-    text:title
-    text:link
-spec:bikeshed-1; type:dfn; for:railroad; text:optional
-</pre>
+<div boilerplate=status>
+  <p>This is an editor-maintained draft for community review. It expands the
+  previously published pattern descriptions with explicit interoperability
+  requirements and records issues requiring further agreement.</p>
+
+  <p>The document is intended to support future W3C Community Group work. It is
+  not a W3C Standard or a published Community Group Report, and publication of
+  this draft does not imply W3C endorsement or community consensus.</p>
+
+  <p>The <a href="#implementation-notes">implementation notes</a> describe the
+  Rust source reviewed while preparing this draft. They are informative and
+  are not a claim that an implementation conforms to the expanded requirements.
+  Feedback is welcome through the specification's issue tracker.</p>
+</div>
 
 Introduction {#introduction}
 ============================
 
+<div class=informative>
 The [[ASIMOV]] Platform is a polyglot development platform for trustworthy,
-neurosymbolic AI.
+neurosymbolic AI. Its programs can be implemented in different languages and
+combined using operating-system processes, files, and standard streams.
 
-This specification establishes standardized programming patterns and best
-practices for developing robust and maintainable ASIMOV software components.
+This specification defines small, role-specific command-line interfaces. A
+reader imports data into RDF; an adapter queries an RDF dataset; a writer
+exports RDF; and the other patterns provide complementary operations. A host
+can select a program by role without depending on its implementation language.
 
-Examples {#examples}
-====================
+The specification distinguishes a program's semantic contract from the bytes
+used to carry it. An RDF result can contain many statements while occupying a
+single output stream. An SDK can expose that stream as a byte buffer without
+itself interpreting RDF. Neither buffering nor the choice of SDK return type
+changes the external program's contract.
+</div>
+
+## Scope ## {#scope}
+
+This specification defines:
+
+* the roles and input/output contracts of thirteen program patterns;
+* positional operands, standard options, and defaults for each pattern;
+* common rules for file selection, standard streams, formats, and completion;
+* requirements for hosts invoking and composing pattern programs; and
+* extension points for formats, resource schemes, models, and runtime behavior.
+
+Executable installation, module discovery, credential provisioning, and the
+choice of a particular RDF storage engine are outside this specification's
+scope. These facilities can be supplied by the surrounding ASIMOV platform.
+This specification does not require a particular programming language, SDK,
+asynchronous runtime, or in-process type system.
+
+Conformance {#conformance}
+==========================
+
+All of the text of this specification is normative except sections explicitly
+marked informative, examples, notes, and issues.
+
+The key words MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT,
+RECOMMENDED, NOT RECOMMENDED, MAY, and OPTIONAL in this document are to be
+interpreted as described in BCP 14 [[!RFC2119]] [[!RFC8174]] when, and only when,
+they appear in all capitals, as shown here.
+
+A <dfn>program</dfn> is an executable implementing one or more of the patterns
+defined in this specification. A <dfn>host</dfn> is software that invokes a
+program, supplies its input, handles its output, and observes its completion.
+An SDK process wrapper is one possible component of a host.
+
+A <dfn>profile</dfn> is a documented set of additional choices needed to use a
+pattern interoperably, such as an RDF stream encoding, a supported URL scheme,
+an entailment regime, or a runtime language. A profile MUST NOT redefine a
+standard option to have an incompatible meaning. It MAY constrain optional
+features or add documented extensions.
+
+A conforming [=program=] MUST satisfy the common program requirements and the
+requirements of each pattern for which it claims conformance. It MUST identify
+those patterns and document its supported formats and each applicable
+[=profile=]. A program need not implement every pattern. Where a table marks
+an option as optional to implement, conformance does not require support for
+that option.
+
+A conforming [=host=] MUST satisfy the host requirements for the operations it
+offers. A host MAY support only a subset of the patterns. It MUST document
+that subset and any restrictions on formats, stream handling, or returned
+results. It MUST NOT claim to provide a pattern's result when it merely runs
+the process and discards that result.
+
+An implementation-defined behavior is one whose choice is left to the
+implementation. Such a choice MUST be documented when this specification
+requires it, and MUST NOT contradict another requirement of this specification.
+
+<div class=note id=note-profile-completeness>
+The retained <code>jsonl</code> default does not yet identify a complete,
+shared RDF mapping. Until that mapping is standardized, conformance claims
+for RDF interchange need to identify a mutually supported profile as well as
+this specification. See <a href="#rdf-mapping">RDF mapping</a>. This draft
+does not claim that the format token alone establishes interoperability.
+</div>
+
+Common processing model {#processing-model}
+===========================================
+
+## Invocations and logical data ## {#invocations}
+
+An <dfn>invocation</dfn> consists of a program, an ordered sequence of argument
+strings, an execution environment, standard streams, and the resulting process
+termination. One invocation performs one pattern operation, although the
+operation MAY generate a stream of results over time.
+
+The data types in the pattern overview describe logical payloads. They do not
+specify the number of reads, writes, lines, RDF statements, or operating-system
+processes used to carry those payloads. In particular:
+
+* an RDF graph or dataset can contain zero or more statements;
+* a listing or resolution can succeed with zero results;
+* a single fetched resource can be described by many RDF statements; and
+* a successful process with no captured stdout is not necessarily a process
+    that produced an empty logical result.
+
+An RDF payload MUST represent RDF graphs or datasets as defined by
+[[!RDF11-CONCEPTS]], using the selected serialization and profile. A text
+payload MUST be UTF-8 unless an explicitly selected format or language profile
+specifies another encoding. UTF-8 is defined by [[!RFC3629]].
+
+## Command-line syntax ## {#command-line}
+
+The synopsis for each pattern uses square brackets for optional operands.
+Uppercase names such as `INPUT-FILE` and `FORMAT` are metavariables, not literal
+argument values. `OPTIONS` stands for zero or more supported options. Options
+precede positional operands in the portable invocation form.
+
+For every supported option listed for its pattern, a program MUST accept the
+long spelling, including the `--name=value` form. It MUST also accept
+`--name value`. Where a short flag is listed, it MUST accept that flag followed
+by a separate value, for example `-o jsonl`. A program MAY additionally accept
+attached short values or other syntactic conveniences.
+
+A program MUST recognize `--` as the end of options. Arguments after `--` MUST
+be interpreted as positional operands even if they begin with `-`. The
+single operand `-` retains its standard-stream meaning where specified below.
+
+An option that is not declared repeatable SHOULD be supplied at most once. A
+host MUST NOT depend on a particular precedence rule for repeated singleton
+options unless that rule is defined by the program's profile. Programs MUST
+document their handling of repeated options.
+
+A program MUST reject an unknown option, a missing option value, an invalid
+value, or an unsupported number of operands with an unsuccessful exit. It
+MUST NOT silently ignore an option that changes the requested operation.
+
+Argument strings are values, not shell source. A host MUST preserve each
+argument's boundary and contents when launching the process. It MUST NOT
+apply shell expansion to a URL, query, model name, definition, or other value
+merely because that value is supplied as a command-line argument.
+
+Note: Shell quoting in examples is for the interactive shell. A host using a
+process API normally supplies each argument directly, without quote characters.
+
+## Resource identifiers ## {#identifiers}
+
+An `INPUT-URI` operand MUST be an absolute URI with a scheme, as defined by
+[[!RFC3986]]. An `INPUT-URL` operand MUST additionally identify a resource
+location under the rules of a supported scheme. A relative pathname is not
+implicitly converted into a `file` URL, and this specification supplies no
+implicit base URI for relative references.
+
+Programs MUST validate the identifiers they accept. A host MAY perform earlier
+validation, but transporting an identifier as a string does not establish its
+validity. Percent-encoding and fragment interpretation follow the identifier's
+scheme and the program's documented resource semantics. RDF payloads can
+contain IRIs as defined by the RDF data model; the command-line identifier
+requirements do not narrow that data model.
+
+## Files and standard streams ## {#standard-streams}
+
+For an input-file operand, `-` denotes stdin. For an output-file operand, `-`
+denotes stdout. Where such an operand is optional, omitting it selects the
+default shown in the pattern's argument table. Programs MUST support these
+stream defaults without requiring an explicit `-` operand.
+
+The `-` convention is platform-independent. A program MUST NOT require callers
+to use `/dev/stdin` or `/dev/stdout`, which are not portable pathnames.
+
+For patterns with both `INPUT-FILE` and `OUTPUT-FILE`:
+
+1. With no operands, input is stdin and output is stdout.
+2. With one operand, that operand is the input file and output is stdout.
+3. With two operands, the first is the input file and the second is the output
+    file. A caller selecting stdin and a named output file supplies `-` first.
+
+The indexer has a different operand rule because its index destination is
+required; see <a href="#indexer-arguments">indexer arguments</a>.
+
+An explicitly selected input file replaces stdin as the operation's payload
+source. An explicitly selected output file replaces stdout as the payload
+destination. A program MUST NOT duplicate that payload on stdout unless a
+documented extension explicitly requests duplication.
+
+A program whose pattern has no stdin payload MUST NOT wait for data on stdin.
+Hosts SHOULD connect unused stdin to the platform's null device. An EOF on an
+input stream means that no more input bytes are available; it is not an error
+by itself. Whether the resulting empty input is meaningful depends on the
+pattern and selected format.
+
+## Payload and diagnostic separation ## {#diagnostics}
+
+Stdout, when it is the selected payload destination, MUST contain only the
+pattern's output serialization. Programs MUST send diagnostics, progress
+messages, and logging to stderr. A program with no payload output, such as an
+indexer, MUST NOT emit progress messages on stdout.
+
+Diagnostics SHOULD be UTF-8 text. Hosts SHOULD preserve diagnostic bytes even
+when they cannot decode them as UTF-8. Diagnostic wording is not a
+machine-readable error protocol and MAY change between implementations.
+Hosts MUST use the process termination result, rather than the presence or
+absence of stderr text, to determine whether an invocation succeeded.
+
+Programs SHOULD honor a nonempty `NO_COLOR` environment variable by disabling
+optional ANSI color decoration in diagnostics. Machine-readable payloads MUST
+NOT contain terminal decoration regardless of that variable. [[NO-COLOR]]
+
+## Formats and defaults ## {#formats}
+
+`--input=FORMAT` selects the input serialization; it does not select a file.
+`--output=FORMAT` selects the output serialization; it does not select a file.
+File selection uses positional operands or host stream configuration.
+
+Programs MUST implement the default format behavior listed for their pattern.
+When a format option is omitted, the program MUST use that default. Hosts MAY
+omit a format option to request the default; they MUST NOT assume that omitting
+an SDK field causes the SDK to transcode the payload.
+
+A program MUST reject an explicitly requested format it does not support.
+It MUST NOT silently substitute another serialization. Programs MUST document
+supported format tokens, any aliases, and any required profiles.
+
+The tokens used in this specification have the following meanings:
+
+<table class=data>
+  <thead>
+    <tr><th>Token<th>Meaning
+  <tbody>
+    <tr><td>`text`<td>UTF-8 text; no structured chat-message envelope is implied.
+    <tr><td>`jsonl`<td>Line-delimited JSON carrying RDF according to a documented
+      RDF mapping profile; see <a href="#rdf-mapping">RDF mapping</a>.
+    <tr><td>`auto`<td>Implementation-defined format selection or detection,
+      subject to the requirements below; not a serialization in its own right.
+</table>
+
+For `auto` input, a program MUST document its detection procedure and fail
+when it cannot select a supported format. Detection MAY use content, a file
+extension, or other documented information. An explicit format selection
+MUST take precedence over automatic detection.
+
+For `auto` output, a program MUST document how it selects a concrete format,
+including the case where output is stdout and no filename is available. It
+MUST NOT emit an unspecified mixture of serializations within one payload.
+Hosts requiring a specific output format SHOULD request it explicitly.
+
+## Counts and optional pagination ## {#counts}
+
+`COUNT` is a non-negative integer expressed using one or more ASCII decimal
+digits. Negative numbers, fractional numbers, and empty values are invalid.
+Programs MUST reject values outside their supported range instead of wrapping
+or silently truncating them.
+
+`--limit=COUNT` sets the maximum number of logical results to emit. Omitting
+the option imposes no caller-requested limit; it does not guarantee that an
+underlying data source is unbounded. `--limit=0` requests no results. Programs
+MAY still validate arguments, authorization, and resource availability.
+
+A logical result for a lister is a listed entry, not an RDF statement or line
+of serialized output. A logical result for a resolver is one output URL.
+Programs MUST document how listed entries are represented in RDF.
+
+The lister additionally defines optional `--sort` and `--offset` options.
+When supported and requested together, sorting is applied before the offset,
+and the limit is applied after the offset. Pagination MUST NOT split the RDF
+description of an entry merely to meet a statement or line count.
+
+## Completion and failure ## {#completion}
+
+An [=invocation=] succeeds only when its process terminates normally with exit
+status zero. A nonzero exit status or abnormal termination indicates failure.
+A host MUST distinguish failure to start a process from termination of a
+process that was successfully started. An absent numeric exit code, for
+example after termination by a signal, MUST NOT be treated as success.
+
+Programs SHOULD use the conventional `sysexits` categories where applicable.
+The following table gives recommended categories; hosts MUST also support
+programs using other nonzero statuses. [[SYSEXITS]]
+
+<table class=data>
+  <thead>
+    <tr><th>Status<th>Name<th>Typical use
+  <tbody>
+    <tr><td>64<td>`EX_USAGE`<td>Invalid command-line syntax or option value.
+    <tr><td>65<td>`EX_DATAERR`<td>Invalid input payload.
+    <tr><td>66<td>`EX_NOINPUT`<td>Required input file is unavailable.
+    <tr><td>69<td>`EX_UNAVAILABLE`<td>Required service or resource is unavailable.
+    <tr><td>70<td>`EX_SOFTWARE`<td>Internal software failure.
+    <tr><td>73<td>`EX_CANTCREAT`<td>Output file or index cannot be created.
+    <tr><td>74<td>`EX_IOERR`<td>I/O failure while processing data.
+    <tr><td>75<td>`EX_TEMPFAIL`<td>Temporary failure for which retry may be useful.
+    <tr><td>77<td>`EX_NOPERM`<td>Insufficient permission.
+    <tr><td>78<td>`EX_CONFIG`<td>Invalid or missing configuration.
+</table>
+
+A program can emit output before subsequently failing. Such output MUST NOT
+be represented by a host as a successfully completed result. A streaming host
+MUST provide a completion or failure indication in addition to the data stream.
+It MAY expose partial output together with the failure.
+
+An unsuccessful invocation does not imply that external side effects were
+rolled back. Programs that modify an index, write files, or execute code MUST
+document their partial-update and retry behavior. Hosts MUST NOT infer
+idempotence solely from a pattern name or an exit-status category.
 
 Patterns {#patterns}
 ====================
 
-<table class="data">
+The following table summarizes the logical contract of each pattern. RDF
+results are serialized graphs or datasets, not a count of individual output
+objects. Specific multiplicity requirements are stated in the pattern sections.
+
+<table class=data>
   <thead>
-    <tr>
-      <th align="left">Name</th>
-      <th align="left">Summary</th>
-      <th align="left">Input</th>
-      <th align="left">Arity</th>
-      <th align="left">Output</th>
-      <th align="left">Arity</th>
-    </tr>
-  </thead>
+    <tr><th>Pattern<th>Role<th>Logical input<th>Logical output
   <tbody>
-    <tr>
-      <td align="left"><dfn>Adapter</dfn></td>
-      <td align="left">RDF dataset proxy.</td>
-      <td align="left">SPARQL</td>
-      <td align="left">1</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Compiler</dfn></td>
-      <td align="left">Prompt compiler.</td>
-      <td align="left">text</td>
-      <td align="left">1</td>
-      <td align="left">SPARQL</td>
-      <td align="left">1</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Emitter</dfn></td>
-      <td align="left">Value generator.</td>
-      <td align="left">-</td>
-      <td align="left">0</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Fetcher</dfn></td>
-      <td align="left">URL protocol client.</td>
-      <td align="left">URL</td>
-      <td align="left">1</td>
-      <td align="left">RDF</td>
-      <td align="left">1</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Indexer</dfn></td>
-      <td align="left">RDF dataset indexer.</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-      <td align="left">-</td>
-      <td align="left">0</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn id="lister-pattern">Lister</dfn></td>
-      <td align="left">Directory iterator.</td>
-      <td align="left">URL</td>
-      <td align="left">1</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn id="matcher-pattern">Matcher</dfn></td>
-      <td align="left">Exact or approximate matcher.</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Prompter</dfn></td>
-      <td align="left">LLM inference provider.</td>
-      <td align="left">text</td>
-      <td align="left">1</td>
-      <td align="left">text</td>
-      <td align="left">1</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Reader</dfn></td>
-      <td align="left">RDF dataset importer.</td>
-      <td align="left">any</td>
-      <td align="left">1</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Reasoner</dfn></td>
-      <td align="left">RDF dataset entailer.</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Resolver</dfn></td>
-      <td align="left">URI resolver.</td>
-      <td align="left">URI</td>
-      <td align="left">1</td>
-      <td align="left">URL</td>
-      <td align="left">N</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Runner</dfn></td>
-      <td align="left">Language runtime engine.</td>
-      <td align="left">any</td>
-      <td align="left">1</td>
-      <td align="left">text</td>
-      <td align="left">1</td>
-    </tr>
-    <tr>
-      <td align="left"><dfn>Writer</dfn></td>
-      <td align="left">RDF dataset exporter.</td>
-      <td align="left">RDF</td>
-      <td align="left">N</td>
-      <td align="left">any</td>
-      <td align="left">1</td>
-    </tr>
-  </tbody>
+    <tr><td><a href="#adapter">Adapter</a><td>RDF dataset proxy<td>SPARQL query<td>RDF
+    <tr><td><a href="#compiler">Compiler</a><td>Prompt compiler<td>Natural-language text<td>SPARQL query
+    <tr><td><a href="#emitter">Emitter</a><td>Value generator<td>None<td>RDF
+    <tr><td><a href="#fetcher">Fetcher</a><td>URL protocol client<td>One URL<td>RDF
+    <tr><td><a href="#indexer">Indexer</a><td>Persistent RDF dataset indexer<td>RDF<td>None
+    <tr><td><a href="#lister">Lister</a><td>Directory iterator<td>One URL<td>RDF describing zero or more entries
+    <tr><td><a href="#matcher">Matcher</a><td>Exact or approximate matcher<td>RDF<td>RDF describing matches
+    <tr><td><a href="#prompter">Prompter</a><td>LLM inference provider<td>Prompt text<td>Response text
+    <tr><td><a href="#reader">Reader</a><td>RDF dataset importer<td>Input document or byte stream<td>RDF
+    <tr><td><a href="#reasoner">Reasoner</a><td>RDF dataset entailer<td>RDF<td>Entailed RDF
+    <tr><td><a href="#resolver">Resolver</a><td>URI resolver<td>One URI<td>Zero or more URLs
+    <tr><td><a href="#runner">Runner</a><td>Language runtime engine<td>Program text<td>Execution result as text
+    <tr><td><a href="#writer">Writer</a><td>RDF dataset exporter<td>RDF<td>Output document or byte stream
 </table>
 
-<pre class=include>
-path: sections/adapter.bs
-</pre>
+## Adapter ## {#adapter}
 
-<pre class=include>
-path: sections/compiler.bs
-</pre>
+An adapter provides an RDF dataset proxy. It consumes a SPARQL query and emits
+RDF resulting from evaluation against the dataset made available by the
+program. SPARQL query syntax and query forms are defined in [[!SPARQL11-QUERY]].
 
-<pre class=include>
-path: sections/emitter.bs
-</pre>
+<pre>PROGRAM &bs[;OPTIONS] &bs[;QUERY-FILE]</pre>
 
-<pre class=include>
-path: sections/fetcher.bs
-</pre>
+### Arguments ### {#adapter-arguments}
 
-<pre class=include>
-path: sections/indexer.bs
-</pre>
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody><tr><td>`QUERY-FILE`<td>0..1<td>`-` (stdin)<td>SPARQL query file.
+</table>
 
-<pre class=include>
-path: sections/lister.bs
-</pre>
+### Options ### {#adapter-options}
 
-<pre class=include>
-path: sections/matcher.bs
-</pre>
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody><tr><td>`--output=FORMAT`<td>`-o`<td>`jsonl`<td>RDF output format.
+</table>
 
-<pre class=include>
-path: sections/prompter.bs
-</pre>
+The program MUST document the dataset being queried and the SPARQL features
+it supports. It MUST reject an unsupported query form rather than emit a
+non-RDF result under an RDF format token.
 
-<pre class=include>
-path: sections/reader.bs
-</pre>
+`CONSTRUCT` and `DESCRIBE` produce graph results. Support for `SELECT` or `ASK`
+requires a documented mapping of their results to RDF. This pattern does not
+implicitly authorize SPARQL Update or specify an update protocol.
 
-<pre class=include>
-path: sections/reasoner.bs
-</pre>
+## Compiler ## {#compiler}
 
-<pre class=include>
-path: sections/resolver.bs
-</pre>
+A compiler translates natural-language input into one SPARQL query intended
+for an adapter. The compiler does not execute that query as part of this
+pattern's result contract.
 
-<pre class=include>
-path: sections/runner.bs
-</pre>
+<pre>PROGRAM &bs[;OPTIONS] &bs[;INPUT-FILE]</pre>
 
-<pre class=include>
-path: sections/writer.bs
-</pre>
+### Arguments ### {#compiler-arguments}
 
-RDF Mapping {#rdf-mapping}
-==========================
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody><tr><td>`INPUT-FILE`<td>0..1<td>`-` (stdin)<td>Natural-language input file.
+</table>
 
-Security Considerations {#security}
-===================================
+### Options ### {#compiler-options}
 
-IANA Considerations {#iana}
+This pattern defines no pattern-specific options. Additional options, if
+provided, are extensions subject to <a href="#extensions">extension rules</a>.
+
+On success, stdout MUST contain a syntactically valid SPARQL query as UTF-8
+text, without Markdown fences or explanatory prose outside the query. The
+query MUST use a graph-producing form, or a form for which the intended adapter
+profile defines an RDF result mapping. The program MUST document assumptions
+about the target dataset, vocabulary, and adapter capabilities.
+
+Note: Syntactic validity does not guarantee that a generated query captures
+the author's intent or is suitable for execution against every dataset.
+
+## Emitter ## {#emitter}
+
+An emitter generates values represented as RDF. It takes no payload input.
+Its arguments, environment, configuration, or external sources can determine
+which values it emits.
+
+<pre>PROGRAM &bs[;OPTIONS]</pre>
+
+### Arguments ### {#emitter-arguments}
+
+This pattern defines no positional operands. The program MUST NOT wait for
+stdin as a payload source.
+
+### Options ### {#emitter-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody><tr><td>`--output=FORMAT`<td>`-o`<td>`jsonl`<td>RDF output format.
+</table>
+
+The program MUST document whether generation is finite or continuous and any
+conditions under which it terminates. A finite emitter MAY succeed with an
+empty RDF result. This pattern does not imply determinism across invocations.
+
+## Fetcher ## {#fetcher}
+
+A fetcher is a URL protocol client. It accepts one URL and produces an RDF
+representation or description of the identified resource. Raw retrieval of
+arbitrary response bytes is not, by itself, this pattern's RDF output contract.
+
+<pre>PROGRAM &bs[;OPTIONS] INPUT-URL</pre>
+
+### Arguments ### {#fetcher-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody><tr><td>`INPUT-URL`<td>1<td>None<td>URL of the resource to retrieve.
+</table>
+
+### Options ### {#fetcher-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody><tr><td>`--output=FORMAT`<td>`-o`<td>`jsonl`<td>RDF output format.
+</table>
+
+The program MUST document supported URL schemes and its mapping from retrieved
+resources to RDF. A URL is supplied as one argument; it MUST NOT be split at
+spaces or interpreted as a shell command. Unsupported schemes MUST cause
+failure. Redirect handling, authentication, caching, and retrieval limits are
+implementation-defined and MUST be documented where supported.
+
+## Indexer ## {#indexer}
+
+An indexer consumes RDF and maintains a persistent index at the selected
+destination. It has no payload output.
+
+<pre>PROGRAM &bs[;OPTIONS] &bs[;INPUT-FILE] INDEX-FILE</pre>
+
+### Arguments ### {#indexer-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`INPUT-FILE`<td>0..1<td>`-` (stdin)<td>RDF input file.
+    <tr><td>`INDEX-FILE`<td>1<td>None<td>Persistent index destination.
+</table>
+
+The operands MUST be interpreted as follows:
+
+1. With one operand, that operand is `INDEX-FILE`; input is stdin.
+2. With two operands, the first is `INPUT-FILE` and the second is `INDEX-FILE`.
+3. With no operands or more than two operands, invocation MUST fail.
+
+`INDEX-FILE` is a program-defined persistent file or directory location. It
+does not use `-` to mean stdout. An indexer MUST reject `-` as an index
+destination; a literal relative pathname can instead be written as `./-`.
+
+### Options ### {#indexer-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody><tr><td>`--input=FORMAT`<td>`-i`<td>`jsonl`<td>RDF input format.
+</table>
+
+The program MUST document its index format, creation behavior, update or
+replacement semantics, concurrency behavior, and guarantees on failure.
+A zero exit status indicates completion according to those documented
+guarantees; it does not independently specify transactional or crash-durability
+semantics. Stdout MUST contain no payload.
+
+## Lister ## {#lister}
+
+A lister iterates a directory or collection identified by a URL and produces
+RDF describing its entries. A directory need not be a local filesystem
+directory. A successful listing MAY contain no entries.
+
+<pre>PROGRAM &bs[;OPTIONS] INPUT-URL</pre>
+
+### Arguments ### {#lister-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody><tr><td>`INPUT-URL`<td>1<td>None<td>URL of the directory or collection.
+</table>
+
+### Options ### {#lister-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Support<th>Meaning
+  <tbody>
+    <tr><td>`--limit=COUNT`<td>`-n`<td>No limit<td>Required<td>Maximum number of entries.
+    <tr><td>`--output=FORMAT`<td>`-o`<td>`jsonl`<td>Required<td>RDF output format.
+    <tr><td>`--offset=COUNT`<td>None<td>`0`<td>Optional<td>Number of entries to skip.
+    <tr><td>`--sort=SORT`<td>None<td>Program-defined order<td>Optional<td>Ordering requested using a documented sort expression.
+</table>
+
+The program MUST document supported URL schemes, the RDF description of an
+entry, and ordering guarantees. If sorting or offset is unsupported, supplying
+the corresponding option MUST cause failure. Supported sorting and pagination
+follow <a href="#counts">the common count rules</a>.
+Hosts MUST use a sort expression supported by the selected program's profile.
+
+An offset is zero-based: `--offset=0` skips no entries and `--offset=1` skips
+the first entry. Without an explicit sort expression, pagination uses the
+program's documented default order. Programs SHOULD provide a stable order
+for an unchanged collection when pagination is supported. This specification
+does not require a consistent snapshot across separate invocations.
+
+<div class=issue id=issue-sort-grammar>
+The Rust wrapper forwards <code>--sort</code> and <code>--offset</code>, but the
+previous specification listed neither. This draft reserves their semantics
+as optional capabilities. The interoperable grammar for <code>SORT</code>,
+including keys, direction, and tie-breaking, remains to be agreed. An
+undocumented spelling such as <code>asc</code> cannot be assumed portable.
+</div>
+
+## Matcher ## {#matcher}
+
+A matcher performs exact or approximate matching over RDF input and emits RDF
+describing the matches. Output is not necessarily a subset of the input
+dataset: it can introduce statements identifying correspondences or scores.
+
+<pre>PROGRAM &bs[;OPTIONS] &bs[;INPUT-FILE &bs[;OUTPUT-FILE]]</pre>
+
+### Arguments ### {#matcher-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`INPUT-FILE`<td>0..1<td>`-` (stdin)<td>RDF input file.
+    <tr><td>`OUTPUT-FILE`<td>0..1<td>`-` (stdout)<td>RDF match-result file.
+</table>
+
+### Options ### {#matcher-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`--input=FORMAT`<td>`-i`<td>`jsonl`<td>RDF input format.
+    <tr><td>`--output=FORMAT`<td>`-o`<td>`jsonl`<td>RDF output format.
+</table>
+
+The program MUST document the matching relation, the compared entities or
+external reference data, and the vocabulary used to describe matches. If it
+reports scores, it MUST document their interpretation. Exactness, thresholds,
+and approximation algorithms are profile-specific; this specification does
+not define a universal matching algorithm or score scale.
+
+## Prompter ## {#prompter}
+
+A prompter provides language-model inference. It consumes a prompt and emits
+a response. The default input and output formats are UTF-8 text.
+
+<pre>PROGRAM &bs[;OPTIONS] &bs[;INPUT-FILE &bs[;OUTPUT-FILE]]</pre>
+
+### Arguments ### {#prompter-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`INPUT-FILE`<td>0..1<td>`-` (stdin)<td>Prompt input file.
+    <tr><td>`OUTPUT-FILE`<td>0..1<td>`-` (stdout)<td>Response output file.
+</table>
+
+### Options ### {#prompter-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`--input=FORMAT`<td>`-i`<td>`text`<td>Prompt format.
+    <tr><td>`--model=MODEL`<td>`-m`<td>`auto`<td>Inference model selection.
+    <tr><td>`--output=FORMAT`<td>`-o`<td>`text`<td>Response format.
+</table>
+
+For `--model=auto`, model selection is implementation-defined and MUST be
+documented. An explicitly selected model that is unavailable or unsupported
+MUST cause failure rather than an undocumented substitution.
+
+The `text` format does not standardize role labels, conversation delimiters,
+tool calls, or a structured message envelope. A program that assigns such
+meaning to portions of the text MUST document that convention. Structured
+prompt or response formats MAY be provided using explicit format tokens and
+documented profiles.
+
+A host presenting the response as text MUST preserve its whitespace and
+newlines unless it exposes a separate, explicitly requested transformation.
+The program MUST document whether it can stream output and whether repeated
+invocations can produce different results for the same prompt.
+
+## Reader ## {#reader}
+
+A reader imports a document or byte stream into an RDF graph or dataset.
+The input can use a non-RDF format; interpretation and mapping are performed
+by the reader program.
+
+<pre>PROGRAM &bs[;OPTIONS] &bs[;INPUT-FILE &bs[;OUTPUT-FILE]]</pre>
+
+### Arguments ### {#reader-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`INPUT-FILE`<td>0..1<td>`-` (stdin)<td>Source input file.
+    <tr><td>`OUTPUT-FILE`<td>0..1<td>`-` (stdout)<td>RDF output file.
+</table>
+
+### Options ### {#reader-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`--input=FORMAT`<td>`-i`<td>`auto`<td>Source format or automatic detection.
+    <tr><td>`--output=FORMAT`<td>`-o`<td>`jsonl`<td>RDF output format.
+</table>
+
+The program MUST document supported input formats and their RDF mappings,
+including any base-IRI, vocabulary, or identifier-generation conventions.
+The `auto` behavior MUST follow <a href="#formats">the format-selection rules</a>.
+
+## Reasoner ## {#reasoner}
+
+A reasoner consumes RDF and emits RDF entailed under a documented entailment
+regime or rule system.
+
+<pre>PROGRAM &bs[;OPTIONS] &bs[;INPUT-FILE &bs[;OUTPUT-FILE]]</pre>
+
+### Arguments ### {#reasoner-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`INPUT-FILE`<td>0..1<td>`-` (stdin)<td>RDF input file.
+    <tr><td>`OUTPUT-FILE`<td>0..1<td>`-` (stdout)<td>Entailed RDF output file.
+</table>
+
+### Options ### {#reasoner-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`--input=FORMAT`<td>`-i`<td>`jsonl`<td>RDF input format.
+    <tr><td>`--output=FORMAT`<td>`-o`<td>`jsonl`<td>RDF output format.
+</table>
+
+The program MUST document its entailment regime, whether output includes the
+input statements or only additional consequences, and how it handles named
+graphs and inconsistent input. This specification does not require a
+particular rule language, completeness guarantee, or reasoning algorithm.
+
+## Resolver ## {#resolver}
+
+A resolver maps one URI, including a URN or URL, to zero or more resolved URLs.
+The URI syntax is defined by [[!RFC3986]]. Resolution identifies locations; it
+does not imply retrieval of the resources at those locations.
+
+<pre>PROGRAM &bs[;OPTIONS] INPUT-URI</pre>
+
+### Arguments ### {#resolver-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody><tr><td>`INPUT-URI`<td>1<td>None<td>URI to resolve.
+</table>
+
+The input URI is REQUIRED. There is no implicit stdin or environment source
+for an omitted operand. Programs MUST document the URI schemes they support
+and MUST reject unsupported schemes. The input is passed as one argument.
+
+### Options ### {#resolver-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody><tr><td>`--limit=COUNT`<td>`-n`<td>No limit<td>Maximum number of output URLs.
+</table>
+
+### Output framing ### {#resolver-output}
+
+On success, stdout MUST contain zero or more absolute URLs, encoded as UTF-8,
+with one URL followed by a line feed (U+000A) per result. There is no header,
+JSON envelope, quoting, or shell escaping. A successful resolution with no
+results produces zero output bytes. A program MUST NOT emit blank result lines.
+
+A host parsing resolver output MUST preserve result order. It MUST treat each
+line as one URL rather than split it on whitespace or commas. It MUST accept
+CRLF line endings and a final nonempty line without a terminating line feed
+for compatibility with existing text producers. Removing a line terminator
+does not authorize other whitespace trimming or percent-decoding.
+
+Each result MUST be an absolute URI usable as a locator under its scheme's
+rules. Embedded line-feed or carriage-return characters are not permitted in
+a result. A program MUST document ordering, duplicate-result behavior, and any
+network or local lookup used in resolution.
+
+Note: The line-oriented framing is made explicit in this draft to enable
+hosts to return a list of URLs. The reviewed Rust wrapper's unfinished line
+parsing is evidence of the need for this contract, not an implementation of it.
+
+## Runner ## {#runner}
+
+A runner is a language runtime engine. It consumes text conforming to a
+documented grammar, executes it, and emits the execution result as text.
+This pattern is distinct from a host's generic process-launching facility.
+
+<pre>PROGRAM &bs[;OPTIONS] &bs[;INPUT-FILE]</pre>
+
+### Arguments ### {#runner-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody><tr><td>`INPUT-FILE`<td>0..1<td>`-` (stdin)<td>Program text input file.
+</table>
+
+### Options ### {#runner-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody><tr><td>`--define=VAR=VAL`<td>`-D`<td>No definitions<td>Repeatable variable definition.
+</table>
+
+The `--define` option is repeatable. Its argument is split at the first `=`
+into a variable name and value; additional `=` characters belong to the value.
+A missing separator or empty variable name is invalid. An empty value is
+permitted. Programs MUST document variable-name constraints, value
+interpretation, and the policy for repeated definitions of the same variable.
+
+The program MUST document its language and version, how definitions are made
+available to the executed program, how the execution result is represented,
+and what external side effects are possible. Accepting arbitrary input bytes
+in an SDK does not remove the requirement that program input conform to the
+selected language's syntax and encoding.
+
+## Writer ## {#writer}
+
+A writer exports an RDF graph or dataset to a supported output format. The
+output can be an RDF serialization or a non-RDF representation.
+
+<pre>PROGRAM &bs[;OPTIONS] &bs[;INPUT-FILE &bs[;OUTPUT-FILE]]</pre>
+
+### Arguments ### {#writer-arguments}
+
+<table class=data>
+  <thead><tr><th>Operand<th>Arity<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`INPUT-FILE`<td>0..1<td>`-` (stdin)<td>RDF input file.
+    <tr><td>`OUTPUT-FILE`<td>0..1<td>`-` (stdout)<td>Exported output file.
+</table>
+
+### Options ### {#writer-options}
+
+<table class=data>
+  <thead><tr><th>Option<th>Flag<th>Default<th>Meaning
+  <tbody>
+    <tr><td>`--input=FORMAT`<td>`-i`<td>`jsonl`<td>RDF input format.
+    <tr><td>`--output=FORMAT`<td>`-o`<td>`auto`<td>Export format or automatic selection.
+</table>
+
+The program MUST document its supported output formats, mappings, and any
+loss of RDF information, including named-graph or datatype information. A
+writer's `auto` output selection MUST be defined for stdout as well as for
+named files. An application requiring a particular representation SHOULD
+select it explicitly.
+
+Host requirements {#hosts}
 ===========================
 
-This specification does not require any IANA registrations.
+## Preparing an invocation ## {#host-invocation}
+
+A host MUST keep executable selection separate from payload interpretation.
+It MAY locate programs through a configured installation directory, an
+explicit pathname, a module registry, or the operating system's search path.
+No particular lookup order is required by this specification.
+
+A host MUST preserve argument boundaries and MUST pass a URL or URI as one
+operand where required. Additional arguments supplied by an application are
+still argument strings, not shell snippets. Hosts SHOULD provide a way to
+set required operands that are not represented by convenience API parameters,
+such as an indexer's `INDEX-FILE`.
+
+A host that supplies input through stdin MUST create a writable child stdin
+stream, deliver the intended bytes, and close its write end when input ends.
+A host selecting a named input file instead MUST NOT assume that the child
+will also consume bytes sent to stdin.
+
+## Output handling and progress ## {#host-streams}
+
+A host MAY discard output, inherit the parent's stream, capture bytes, or
+forward bytes to another destination. Its API MUST distinguish these choices.
+If a host claims to forward output to a destination, it MUST actually transfer
+the bytes and report transfer failure; creating a pipe alone is insufficient.
+
+For every piped stdout or stderr stream, a host MUST arrange for reads to
+make progress while it writes input and waits for the child. A program MAY
+produce output before consuming all input. Hosts MUST NOT require a program
+to fit all output in an operating-system pipe buffer before that host starts
+reading it.
+
+A host MAY buffer the complete output before returning a result, or expose
+incremental output. It MUST document which behavior its API provides and any
+size limits. Output bytes MUST be preserved unless a documented format parser
+or an explicitly requested transformation is applied. Decoding failure MUST
+NOT be silently reported as an empty successful value.
+
+A host MUST observe failures while supplying input or forwarding output.
+It MUST NOT report an overall successful transfer merely because the child's
+exit status is zero when a required host-side transfer failed.
+
+Note: A host may need concurrent tasks to feed stdin and drain stdout and
+stderr. Full-duplex progress is an I/O requirement, not a requirement to use
+threads, Tokio, or any other particular execution mechanism.
+
+## Repeated execution and cancellation ## {#host-lifecycle}
+
+Hosts MUST document whether repeated execution reuses configuration, replays
+input, or consumes input from its current position. A host MUST NOT imply
+that a consumed stream is rewound unless it actually provides replay.
+
+Hosts MUST document ownership of running child processes, cancellation
+behavior, and how exit status is collected. Cancellation or dropping an API
+handle MUST NOT be presented as successful completion. Killing a child does
+not establish that a previously initiated remote operation or persistent
+index update was rolled back.
+
+## Composition ## {#composition}
+
+A host composing programs MUST ensure that the producer's output format and
+profile are accepted by the consumer. Matching names such as `GraphOutput`
+and `GraphInput` in an SDK do not establish serialization compatibility.
+
+A host claiming successful completion of a pipeline MUST account for every
+required stage's exit status and every required inter-stage transfer. Success
+of the last stage alone is insufficient. The policy for stopping other stages
+after failure or cancellation MUST be documented.
+
+Note: Shell examples illustrate data flow, but ordinary shell pipelines may
+report only the final command's status. Applications needing the host guarantees
+in this section must also monitor upstream stages.
+
+RDF mapping {#rdf-mapping}
+==========================
+
+RDF is the semantic model of the graph-oriented patterns. A byte stream that
+parses as JSON is not necessarily an RDF graph or dataset. An RDF stream
+profile MUST specify:
+
+* the serialization grammar and character encoding;
+* the mapping between serialized values and RDF terms, statements, or datasets;
+* the representation of IRIs, blank nodes, literals, datatypes, and language tags;
+* the treatment of default and named graphs;
+* base-IRI resolution, where relative identifiers are supported;
+* framing, blank-node scope, empty results, and stream termination; and
+* any information loss or normalization permitted by the mapping.
+
+For `jsonl`, each nonempty record MUST be one complete JSON value on a single
+line, encoded as UTF-8. JSON syntax is defined by [[!RFC8259]]. Producers MUST
+terminate each record with a line feed and MUST NOT emit blank records or
+pretty-printed JSON spanning multiple lines. A profile MUST define how each
+JSON value represents RDF and whether state or context is shared across
+records. The token `jsonl` alone does not imply JSON-LD or a particular object
+shape such as `subject`/`predicate`/`object` members.
+
+Programs and hosts MUST NOT assume that an RDF record is synonymous with a
+listed entry or an independently scoped dataset. In particular, they MUST
+respect the profile's blank-node scope when splitting or combining streams.
+
+<div class=issue id=issue-jsonl-profile>
+A shared RDF <code>jsonl</code> profile, its identifier, and a normative reference
+must be selected before this default can provide plug-and-play RDF interchange.
+The reviewed Rust wrappers forward the token and raw bytes; they do not define
+the wire representation. This draft deliberately does not invent a JSON shape
+from those wrappers. A standards-defined RDF serialization can also be selected
+explicitly when both programs support it.
+</div>
+
+This specification does not define an RDF vocabulary for describing installed
+programs, invocation metadata, error objects, or pipeline topology. Such a
+vocabulary can be defined separately. Payload RDF and metadata describing a
+program are distinct uses of RDF.
+
+Extensions {#extensions}
+========================
+
+A program MAY provide additional options, format tokens, model identifiers,
+resource schemes, and profile-specific behavior. It MUST document such
+extensions and MUST retain the semantics of the standard options it supports.
+Extensions MUST NOT cause an otherwise valid standard invocation to require
+additional operands or options.
+
+A host MUST NOT infer support for an extension merely because its SDK exposes
+a field or an untyped additional-argument list. Support has to be established
+through program documentation, configuration, or a separately defined
+capability-discovery mechanism.
+
+This specification does not define a capability-discovery command or a
+registry of extension names. Implementations SHOULD use descriptive long
+option names and avoid short-option assignments that conflict with their
+pattern's standard flags.
+
+Examples {#examples}
+====================
+
+<div class=informative>
+The executable names below are illustrative. These examples assume that
+connected programs support the same documented RDF <code>jsonl</code> profile.
+Shell redirection and pipes configure streams; they are not arguments passed
+to the programs. Error handling is omitted for readability.
+</div>
+
+<div class=example id=example-query-pipeline>
+  <p>Compile a natural-language request and query a dataset:</p>
+  <pre>asimov-example-compiler request.txt | asimov-example-adapter --output=jsonl</pre>
+  <p>The compiler emits SPARQL. The adapter reads it from stdin and emits RDF.
+  A host observes both processes' completion before declaring success.</p>
+</div>
+
+<div class=example id=example-index>
+  <p>Fetch RDF and index it using the single-operand indexer form:</p>
+  <pre>asimov-example-fetcher --output=jsonl https://example.com/resource | asimov-example-indexer --input=jsonl ./catalog.index</pre>
+  <p>The equivalent explicit-stdin indexer invocation is:</p>
+  <pre>asimov-example-indexer --input=jsonl - ./catalog.index</pre>
+  <p>In both forms, the indexer reads RDF from stdin and treats
+  <code>./catalog.index</code> as the persistent destination.</p>
+</div>
+
+<div class=example id=example-resolution>
+  <p>Resolve a URI to at most two URLs:</p>
+  <pre>asimov-example-resolver --limit=2 urn:example:document:42</pre>
+  <p>An illustrative successful stdout payload is:</p>
+  <pre>https://example.com/documents/42
+https://mirror.example.com/documents/42
+</pre>
+  <p>The host parses two URL records. It does not interpret the lines as RDF
+  or execute them as shell commands.</p>
+</div>
+
+<div class=example id=example-prompt>
+  <p>Read a text prompt from stdin and write the text response to a file:</p>
+  <pre>asimov-example-prompter --input=text --output=text --model=auto - response.txt</pre>
+  <p>The first operand is needed because a single filename would select the
+  input file, not the output file.</p>
+</div>
+
+<div class=example id=example-definitions>
+  <p>Pass two runtime definitions, including a value containing an equals sign:</p>
+  <pre>asimov-example-runner --define=mode=preview --define=expression=a=b program.txt</pre>
+  <p>The second definition has the variable name <code>expression</code> and
+  value <code>a=b</code>. Its interpretation belongs to the selected runtime.</p>
+</div>
+
+Security and privacy considerations {#security}
+================================================
+
+Programs and hosts operate on potentially untrusted arguments, payloads,
+resources, and generated text. Conformance to an input/output contract does
+not establish trust in the program, its data source, or its output.
+
+Hosts MUST preserve argument boundaries as specified in
+<a href="#command-line">command-line syntax</a>. Concatenating a resource
+identifier or model-supplied value into a shell command can introduce command
+injection. Executable lookup policy SHOULD prevent an untrusted directory
+from unexpectedly substituting a program selected by name.
+
+Fetchers, listers, resolvers, and programs using remote services SHOULD enforce
+the application's restrictions on network destinations and URI schemes,
+including after redirects. Dereferencing input can expose local resources,
+credentials, or internal network services. Programs MUST document when payloads
+or identifiers are transmitted to third parties.
+
+Programs accepting untrusted RDF or other structured data SHOULD bound parsing
+resources and document external-reference resolution. Hosts SHOULD provide
+limits for runtime, input size, captured output, and diagnostic retention.
+Exceeding a resource limit that prevents completion of the requested operation
+MUST result in an observable failure or cancellation rather than a silently
+truncated successful payload. This does not apply to a requested result count
+such as `--limit`, which is part of the operation itself. Hosts MAY abbreviate
+retained diagnostics if they indicate that the diagnostic record is incomplete.
+
+Prompts and RDF literals can contain instructions intended for a model. Such
+content is data under this specification; it does not by itself authorize
+additional host actions. Compiled queries and runtime program text can cause
+expensive computation or external effects. Applications determine whether and
+with what authority those outputs are subsequently executed.
+
+Index destinations, output files, environment variables, prompts, and stderr
+can contain sensitive information. Programs SHOULD avoid unnecessary secret
+disclosure in diagnostics. Hosts SHOULD apply the application's retention
+and access-control policy to captured output and diagnostics.
+
+Process cancellation is not a transaction boundary. Implementations MUST NOT
+claim that killing a process undoes filesystem, network, or index changes
+unless they implement and document such a guarantee.
+
+IANA considerations {#iana}
+===========================
+
+This specification requests no IANA registrations. Format tokens and option
+names defined here are local to these program interfaces; this document does
+not register media types, URI schemes, or protocol parameters.
+
+Implementation notes {#implementation-notes}
+===========================================
+
+<div class=informative>
+This section is informative. It records observations from the
+<code>asimov-runner</code> Rust crate, version 25.4.0, reviewed for this draft.
+The paths below are relative to its <code>src/</code> directory. These are
+implementation observations, not requirements for other SDKs or endorsements
+of conformance to this expanded draft.
+
+## Pattern coverage and argument construction ## {#implementation-patterns}
+
+<code>programs.rs</code> exports wrappers for twelve patterns: adapter, emitter,
+fetcher, indexer, lister, matcher, prompter, reader, reasoner, resolver, runner,
+and writer. There is no compiler wrapper in the reviewed crate. The compiler
+remains part of the specification.
+
+Constructors prepare commands; execution methods start new child processes.
+Wrappers translate configured option fields into individual
+<code>--name=value</code> arguments, append their <code>other</code> argument
+list, and then append the dedicated URL or URI operand where present. They
+re-export option types and implement the corresponding pattern and execution
+traits from <code>asimov-patterns</code>.
+
+The indexer wrapper has no dedicated index-destination parameter; its required
+operand can be supplied through <code>options.other</code>. The lister wrapper
+forwards <code>--sort</code> and <code>--offset</code> in addition to the limit
+and output-format options previously listed in the specification.
+
+## Process defaults ## {#implementation-executor}
+
+<code>executor.rs</code> checks the ASIMOV root's <code>libexec</code> directory
+before falling back to the supplied program name or path. It sets
+<code>NO_COLOR=1</code>, initially connects all standard streams to the null
+device, and enables Tokio's child-handle kill-on-drop behavior. Wrappers
+subsequently configure the streams required for their pattern.
+
+These lookup, environment, and ownership policies are choices of this host
+implementation. They are not universal program requirements. Process-backed
+APIs are gated on the crate's <code>std</code> feature and use Tokio. Optional
+tracing records child exit statuses.
+
+## Input and output representations ## {#implementation-streams}
+
+<code>input.rs</code> represents either ignored input or an owned asynchronous
+reader. <code>output.rs</code> represents ignored, inherited, captured, or
+asynchronous-writer output. Content-specific aliases such as
+<code>GraphInput</code> and <code>TextOutput</code> do not validate or transcode
+the stream. The unit-type aliases <code>NoInput</code> and <code>NoOutput</code>
+describe the absence of a pattern value.
+
+Converting these values to <code>Stdio</code> configures null, inherited, or
+piped streams; it does not transfer data. The consuming conversion drops an
+owned reader or writer. The borrowed <code>as_stdio()</code> method preserves
+that object for subsequent use.
+
+The stream-input execution path copies the remaining input to child stdin,
+closes that pipe, and only then collects stdout and stderr. Reusing an input
+reader does not rewind it. Copying input before draining output can deadlock
+with a child that fills an output pipe before consuming all input. The
+<a href="#host-streams">host progress requirements</a> therefore describe a
+stronger contract than this implementation currently provides.
+
+Most wrappers buffer captured stdout in memory and return a byte cursor
+positioned at zero. Ignored or inherited stdout produces an empty capture.
+Although <code>Output::AsyncWrite</code> requests a pipe, the reviewed wrappers
+do not forward the captured bytes to its stored writer. This does not satisfy
+the draft's forwarding contract.
+
+## Pattern-specific return values ## {#implementation-results}
+
+<code>programs/indexer.rs</code> discards stdout and returns a unit value on
+success, consistent with the indexer's lack of a payload output.
+
+<code>programs/prompter.rs</code> always captures stdout regardless of its
+output argument. It clones a stored prompt, writes its display representation
+to stdin in a separate task, and decodes the complete stdout as UTF-8 without
+trimming. The write task is not awaited; write failures panic in that task
+rather than being returned through the execution result. A formatter's
+role-prefixed prompt representation does not establish a standard chat grammar.
+
+<code>programs/resolver.rs</code> has a list-of-strings result type, but its
+stdout-to-lines conversion is unfinished. It currently discards captured
+stdout and returns an empty list on success. The resolver contract in this
+draft requires the actual URL results to be available to a host that claims
+to return them.
+
+<code>pipeline.rs</code> contains a zero-sized placeholder with no stages,
+connections, or execution API. The composition requirements specify observable
+host behavior, not an existing Rust pipeline implementation.
+
+## Error representation ## {#implementation-errors}
+
+<code>executor_error.rs</code> distinguishes a not-found spawn error, other
+spawn failures, recognized sysexits failures, other unsuccessful terminations,
+and miscellaneous I/O failures. A termination without a numeric exit code is
+represented separately from a numeric nonzero status.
+
+When converting process output into an error, the implementation keeps stderr
+only if it is valid UTF-8; empty stderr becomes an empty string, while invalid
+UTF-8 becomes absent diagnostic text. Captured stdout is not retained in those
+errors. Successful execution returns stdout and discards captured stderr.
+These representation choices motivate the distinction between process status,
+diagnostic bytes, and partial payloads in the common processing model.
+</div>
 
 Acknowledgments {#acknowledgments}
 ==================================
 
-The editors would like to thank the ASIMOV Platform community for their contributions and feedback during the development of this specification.
+<div class=informative>
+The editors thank the ASIMOV Platform community for its contributions and
+feedback. This revision was informed by a cross-review of the published
+Program Patterns Specification, its Bikeshed section sources, and the Rust
+<code>asimov-runner</code> implementation.
+</div>
+
+Changes {#changes}
+==================
+
+<div class=informative>
+This draft expands the living standard dated 10 September 2026. The following
+changes are proposed for review; they are not a statement of deployed consensus.
+
+## Corrections and clarifications ## {#changes-corrections}
+
+* Makes the adapter's query-file operand optional, matching its stdin default.
+* Renames the resolver operand to <code>INPUT-URI</code> and makes it required,
+    matching its single-URI contract and the reviewed wrapper's dedicated input.
+* Replaces the runner overview's generic input type with program text.
+* Distinguishes payload shape from RDF statement count and transport arity.
+* Defines the indexer's one-operand and two-operand interpretations explicitly.
+* Describes matchers as emitting RDF about matches, and distinguishes language
+    runtimes from generic process launchers.
+
+## Expanded draft requirements ## {#changes-expansions}
+
+* Adds conformance classes for programs and hosts, profiles, and extension rules.
+* Defines portable stream operands, option syntax, payload/diagnostic separation,
+    completion, partial failure, and host stream-progress requirements.
+* Proposes newline-delimited URL framing for resolver output.
+* Adds optional lister offset and sort capabilities, with defined pagination
+    order and an explicit issue for the sort-expression grammar.
+* Clarifies text encoding, automatic format selection, runtime definitions,
+    graph-query results, and pattern-specific implementation-defined behavior.
+* Records the unresolved RDF <code>jsonl</code> mapping instead of inventing a
+    wire format from SDK type aliases or format-token forwarding.
+* Adds examples, security and privacy considerations, and implementation notes.
+
+This file incorporates the pattern sections directly and uses textual examples
+instead of external diagrams, so it can be reviewed as a single Bikeshed source
+without the original <code>sections/</code> and <code>img/</code> directories.
+</div>
 
 <pre class=biblio>
 {
@@ -316,11 +1279,15 @@ The editors would like to thank the ASIMOV Platform community for their contribu
     "authors": ["Gregg Kellogg"],
     "href": "https://json-ld.github.io/yaml-ld/spec/",
     "status": "Draft Community Group Report"
+  },
+  "NO-COLOR": {
+    "title": "Disabling ANSI color output in various Unix commands",
+    "href": "https://no-color.org/"
+  },
+  "SYSEXITS": {
+    "title": "sysexits(3): Preferable exit codes for programs",
+    "publisher": "The FreeBSD Project",
+    "href": "https://man.freebsd.org/cgi/man.cgi?query=sysexits&sektion=3"
   }
 }
 </pre>
-
-Changes {#changes}
-==================
-
-This section will document changes between versions of this specification.
